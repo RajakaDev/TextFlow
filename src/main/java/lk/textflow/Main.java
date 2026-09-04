@@ -1,21 +1,38 @@
 package lk.textflow;
 
-import lk.textflow.config.DatabaseConnection;
-import java.sql.Connection;
+import lk.textflow.dao.ProductDAO;
+import lk.textflow.model.Product;
+
+import java.math.BigDecimal;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        try (Connection connection =
-                     DatabaseConnection.getConnection()) {
+        ProductDAO productDAO = new ProductDAO();
 
+        Product product = new Product(
+                1,
+                "Atlas Blue Pen",
+                "479100100001",
+                new BigDecimal("100.00"),
+                new BigDecimal("70.00"),
+                50,
+                10,
+                "ACTIVE"
+        );
+
+        boolean success =
+                productDAO.addProduct(product);
+
+        if (success) {
             System.out.println(
-                    "TextFlow database connected successfully!"
+                    "Product added successfully!"
             );
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            System.out.println(
+                    "Failed to add product."
+            );
         }
     }
 }
