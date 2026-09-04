@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/TextFlow.iml" filepath="$PROJECT_DIR$/TextFlow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/textflow.iml" filepath="$PROJECT_DIR$/textflow.iml" />
     </modules>
   </component>
 </project>
