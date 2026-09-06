@@ -72,10 +72,48 @@ public class UserDAO {
                         resultSet.getTimestamp("created_at").toLocalDateTime()
                 );
                 users.add(user);
-            }
-        }  catch (SQLException e) {
+                }
+            }  catch (SQLException e) {
             e.printStackTrace();
-    }
+        }
         return users;
-}
+    }
+
+    public boolean updateUser(User user) {
+
+        String sql = """
+                UPDATE users
+                SET name = ?,
+                    username = ?,
+                    role = ?,
+                    position = ?,
+                    contact_number = ?,
+                    status = ?
+                WHERE user_id = ?
+        """;
+
+        try(
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+                ) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getUsername());
+            statement.setString(3, user.getRole());
+            statement.setString(4, user.getPosition());
+            statement.setString(5, user.getContactNumber());
+            statement.setString(6, user.getStatus());
+            statement.setInt(7,user.getUserId());
+
+            int rowsAffected = statement.executeUpdate();
+
+            return rowsAffected > 0;
+
+        }   catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+
+        }
+
+
+    }
 }
