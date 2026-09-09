@@ -1,37 +1,33 @@
 package lk.textflow;
 
-import lk.textflow.dao.ProductDAO;
-import lk.textflow.model.Product;
-
-import java.math.BigDecimal;
+import lk.textflow.dao.InventoryAdjustmentDAO;
+import lk.textflow.model.InventoryAdjustment;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        ProductDAO productDAO = new ProductDAO();
+        InventoryAdjustmentDAO dao =
+                new InventoryAdjustmentDAO();
 
-        Product product = new Product(
-                1,
-                "Atlas Blue Pen",
-                "479100100001",
-                new BigDecimal("100.00"),
-                new BigDecimal("70.00"),
-                50,
-                10,
-                "ACTIVE"
-        );
+        InventoryAdjustment adjustment =
+                new InventoryAdjustment(
+                        3,
+                        1,
+                        10,
+                        "Stock correction"
+                );
 
         boolean success =
-                productDAO.addProduct(product);
+                dao.adjustStock(adjustment);
 
         if (success) {
             System.out.println(
-                    "Product added successfully!"
+                    "Stock adjusted successfully!"
             );
         } else {
             System.out.println(
-                    "Failed to add product."
+                    "Stock adjustment failed!"
             );
         }
     }
