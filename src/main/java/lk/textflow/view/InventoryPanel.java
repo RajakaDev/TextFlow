@@ -575,4 +575,14 @@ public class InventoryPanel extends JPanel {
         loadHistory();
         loadLowStock();
     }
+
+
+    // ======================================
+// REFRESH INVENTORY PANEL
+// ======================================
+    public void refreshData() {
+
+        refreshAll();
+    }
+
 }

@@ -944,9 +944,7 @@ public class ProductPanel extends JPanel {
         txtStockQuantity.setText("");
         txtReorderLevel.setText("");
 
-        cmbStatus.setSelectedItem(
-                "ACTIVE"
-        );
+        cmbStatus.setSelectedItem("ACTIVE");
 
         if (cmbCategory.getItemCount() > 0) {
             cmbCategory.setSelectedIndex(0);
@@ -954,4 +952,16 @@ public class ProductPanel extends JPanel {
 
         productTable.clearSelection();
     }
+
+
+    // ======================================
+// REFRESH PRODUCT PANEL
+// ======================================
+    public void refreshData() {
+
+        loadCategories();
+        loadProducts();
+        clearForm();
+    }
+
 }
