@@ -7,7 +7,70 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+
 public class InventoryAdjustmentDAO {
+    public java.util.List<InventoryAdjustment> getAllAdjustments() {
+
+        java.util.List<InventoryAdjustment> adjustments =
+                new java.util.ArrayList<>();
+
+        String sql = """
+            SELECT adjustment_id,
+                   product_id,
+                   user_id,
+                   quantity_change,
+                   reason,
+                   adjustment_date
+            FROM inventory_adjustments
+            ORDER BY adjustment_date DESC
+            """;
+
+        try (Connection connection =
+                     DatabaseConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql);
+
+             java.sql.ResultSet resultSet =
+                     statement.executeQuery()) {
+
+            while (resultSet.next()) {
+
+                InventoryAdjustment adjustment =
+                        new InventoryAdjustment();
+
+                adjustment.setAdjustmentId(
+                        resultSet.getInt("adjustment_id"));
+
+                adjustment.setProductId(
+                        resultSet.getInt("product_id"));
+
+                adjustment.setUserId(
+                        resultSet.getInt("user_id"));
+
+                adjustment.setQuantityChange(
+                        resultSet.getInt("quantity_change"));
+
+                adjustment.setReason(
+                        resultSet.getString("reason"));
+
+                java.sql.Timestamp timestamp =
+                        resultSet.getTimestamp("adjustment_date");
+
+                if (timestamp != null) {
+                    adjustment.setAdjustmentDate(
+                            timestamp.toLocalDateTime());
+                }
+
+                adjustments.add(adjustment);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return adjustments;
+    }
 
     public boolean adjustStock(
             InventoryAdjustment adjustment) {
