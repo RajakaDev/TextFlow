@@ -1,24 +1,1623 @@
-# Compiled class file
-*.class
+## Visual Studio / .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userosscache
+*.sln.docstates
 
-# Log file
-*.log
+## NuGet
+*.nupkg
+packages/
+**/packages.lock.json
 
-# BlueJ files
-*.ctxt
+## Rider / VS Code
+.idea/
+*.iml
+.vscode/
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+<Project Sdk="Microsoft.NET.Sdk">
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SupplierPurchaseManagement</RootNamespace>
+    <AssemblyName>SupplierPurchaseManagement</AssemblyName>
+  </PropertyGroup>
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.3.0" />
+  </ItemGroup>
+
+</Project>
+
+using System;
+using System.Windows.Forms;
+using SupplierPurchaseManagement.Forms;
+
+namespace SupplierPurchaseManagement
+{
+    internal static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
+    }
+}
+
+using System;
+
+namespace SupplierPurchaseManagement.Models
+{
+    public class PurchaseReturn
+    {
+        public int PurchaseReturnId { get; set; }
+        public int PurchaseItemId { get; set; }
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int QuantityReturned { get; set; }
+        public decimal UnitCost { get; set; }
+        public string Reason { get; set; }
+        public DateTime ReturnDate { get; set; } = DateTime.Now;
+
+        public decimal RefundAmount => QuantityReturned * UnitCost;
+    }
+}
+
+using System;
+using System.Collections.Generic;
+
+namespace SupplierPurchaseManagement.Models
+{
+    public enum PurchaseStatus
+    {
+        Draft,      // unconfirmed - editable / deletable
+        Confirmed,  // stock has been increased
+        Cancelled
+    }
+
+    public class Purchase
+    {
+        public int PurchaseId { get; set; }
+        public int SupplierId { get; set; }
+        public string SupplierName { get; set; } // convenience for grid display
+        public int RecordedByUserId { get; set; } // FK -> users table (Fernando's module)
+        public DateTime PurchaseDate { get; set; } = DateTime.Now;
+        public PurchaseStatus Status { get; set; } = PurchaseStatus.Draft;
+        public decimal TotalAmount { get; set; }
+        public string Notes { get; set; }
+
+        public List<PurchaseItem> Items { get; set; } = new List<PurchaseItem>();
+
+        public decimal CalculateTotal()
+        {
+            decimal total = 0;
+            foreach (var item in Items)
+                total += item.LineTotal;
+            TotalAmount = total;
+            return total;
+        }
+    }
+}
+
+using System;
+
+namespace SupplierPurchaseManagement.Models
+{
+    public class Supplier
+    {
+        public int SupplierId { get; set; }
+        public string Name { get; set; }
+        public string ContactPerson { get; set; }
+        public string Phone { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; }
+
+        public override string ToString() => Name;
+    }
+}
+
+namespace SupplierPurchaseManagement.Models
+{
+    public class PurchaseItem
+    {
+        public int PurchaseItemId { get; set; }
+        public int PurchaseId { get; set; }
+        public int ProductId { get; set; }        // FK -> products table (Anurasiri's module)
+        public string ProductName { get; set; }    // convenience for grid display, read-only lookup
+        public string Barcode { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitCost { get; set; }
+
+        public decimal LineTotal => Quantity * UnitCost;
+    }
+}
+
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using SupplierPurchaseManagement.DAO;
+using SupplierPurchaseManagement.Models;
+
+namespace SupplierPurchaseManagement.Forms
+{
+    public class SupplierForm : Form
+    {
+        private readonly SupplierDAO _supplierDAO = new SupplierDAO();
+
+        private DataGridView grid;
+        private TextBox txtName, txtContact, txtPhone, txtEmail, txtAddress, txtSearch;
+        private Button btnAdd, btnUpdate, btnDeactivate, btnClear, btnSearch;
+        private int? selectedSupplierId = null;
+
+        public SupplierForm()
+        {
+            Text = "Manage Suppliers";
+            Width = 900;
+            Height = 560;
+            StartPosition = FormStartPosition.CenterScreen;
+
+            BuildUi();
+            LoadSuppliers();
+        }
+
+        private void BuildUi()
+        {
+            var lblSearch = new Label { Text = "Search:", Left = 20, Top = 15, Width = 60 };
+            txtSearch = new TextBox { Left = 80, Top = 12, Width = 200 };
+            btnSearch = new Button { Text = "Search", Left = 290, Top = 10, Width = 80 };
+            btnSearch.Click += (s, e) => LoadSuppliers(txtSearch.Text.Trim());
+
+            grid = new DataGridView
+            {
+                Left = 20,
+                Top = 50,
+                Width = 840,
+                Height = 260,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
+            grid.SelectionChanged += Grid_SelectionChanged;
+
+            int formTop = 330;
+            var lblName = new Label { Text = "Name*:", Left = 20, Top = formTop, Width = 90 };
+            txtName = new TextBox { Left = 120, Top = formTop - 3, Width = 250 };
+
+            var lblContact = new Label { Text = "Contact Person:", Left = 400, Top = formTop, Width = 100 };
+            txtContact = new TextBox { Left = 510, Top = formTop - 3, Width = 250 };
+
+            int row2 = formTop + 35;
+            var lblPhone = new Label { Text = "Phone:", Left = 20, Top = row2, Width = 90 };
+            txtPhone = new TextBox { Left = 120, Top = row2 - 3, Width = 250 };
+
+            var lblEmail = new Label { Text = "Email:", Left = 400, Top = row2, Width = 100 };
+            txtEmail = new TextBox { Left = 510, Top = row2 - 3, Width = 250 };
+
+            int row3 = row2 + 35;
+            var lblAddress = new Label { Text = "Address:", Left = 20, Top = row3, Width = 90 };
+            txtAddress = new TextBox { Left = 120, Top = row3 - 3, Width = 640 };
+
+            int btnTop = row3 + 40;
+            btnAdd = new Button { Text = "Add Supplier", Left = 120, Top = btnTop, Width = 140, Height = 35 };
+            btnAdd.Click += BtnAdd_Click;
+
+            btnUpdate = new Button { Text = "Update Selected", Left = 270, Top = btnTop, Width = 140, Height = 35 };
+            btnUpdate.Click += BtnUpdate_Click;
+
+            btnDeactivate = new Button { Text = "Deactivate Selected", Left = 420, Top = btnTop, Width = 160, Height = 35 };
+            btnDeactivate.Click += BtnDeactivate_Click;
+
+            btnClear = new Button { Text = "Clear Form", Left = 590, Top = btnTop, Width = 120, Height = 35 };
+            btnClear.Click += (s, e) => ClearForm();
+
+            Controls.AddRange(new Control[]
+            {
+                lblSearch, txtSearch, btnSearch,
+                grid,
+                lblName, txtName, lblContact, txtContact,
+                lblPhone, txtPhone, lblEmail, txtEmail,
+                lblAddress, txtAddress,
+                btnAdd, btnUpdate, btnDeactivate, btnClear
+            });
+        }
+
+        private void LoadSuppliers(string keyword = null)
+        {
+            var suppliers = string.IsNullOrWhiteSpace(keyword)
+                ? _supplierDAO.GetAllSuppliers()
+                : _supplierDAO.SearchSuppliers(keyword);
+
+            grid.DataSource = null;
+            grid.DataSource = suppliers;
+
+            if (grid.Columns["SupplierId"] != null) grid.Columns["SupplierId"].HeaderText = "ID";
+            if (grid.Columns["ContactPerson"] != null) grid.Columns["ContactPerson"].HeaderText = "Contact";
+            if (grid.Columns["IsActive"] != null) grid.Columns["IsActive"].Visible = false;
+            if (grid.Columns["CreatedAt"] != null) grid.Columns["CreatedAt"].HeaderText = "Since";
+        }
+
+        private void Grid_SelectionChanged(object sender, EventArgs e)
+        {
+            if (grid.CurrentRow?.DataBoundItem is not Supplier supplier) return;
+
+            selectedSupplierId = supplier.SupplierId;
+            txtName.Text = supplier.Name;
+            txtContact.Text = supplier.ContactPerson;
+            txtPhone.Text = supplier.Phone;
+            txtEmail.Text = supplier.Email;
+            txtAddress.Text = supplier.Address;
+        }
+
+        private void BtnAdd_Click(object sender, EventArgs e)
+        {
+            if (!ValidateForm()) return;
+
+            var supplier = new Supplier
+            {
+                Name = txtName.Text.Trim(),
+                ContactPerson = txtContact.Text.Trim(),
+                Phone = txtPhone.Text.Trim(),
+                Email = txtEmail.Text.Trim(),
+                Address = txtAddress.Text.Trim()
+            };
+
+            try
+            {
+                _supplierDAO.AddSupplier(supplier);
+                MessageBox.Show("Supplier added.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ClearForm();
+                LoadSuppliers();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to add supplier: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnUpdate_Click(object sender, EventArgs e)
+        {
+            if (selectedSupplierId == null)
+            {
+                MessageBox.Show("Select a supplier from the list first.");
+                return;
+            }
+            if (!ValidateForm()) return;
+
+            var supplier = new Supplier
+            {
+                SupplierId = selectedSupplierId.Value,
+                Name = txtName.Text.Trim(),
+                ContactPerson = txtContact.Text.Trim(),
+                Phone = txtPhone.Text.Trim(),
+                Email = txtEmail.Text.Trim(),
+                Address = txtAddress.Text.Trim()
+            };
+
+            try
+            {
+                _supplierDAO.UpdateSupplier(supplier);
+                MessageBox.Show("Supplier updated.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ClearForm();
+                LoadSuppliers();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to update supplier: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnDeactivate_Click(object sender, EventArgs e)
+        {
+            if (selectedSupplierId == null)
+            {
+                MessageBox.Show("Select a supplier from the list first.");
+                return;
+            }
+
+            var confirm = MessageBox.Show("Deactivate this supplier? It will be hidden from new purchases but past purchase history is kept.",
+                "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes) return;
+
+            _supplierDAO.DeactivateSupplier(selectedSupplierId.Value);
+            ClearForm();
+            LoadSuppliers();
+        }
+
+        private bool ValidateForm()
+        {
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                MessageBox.Show("Supplier name is required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            return true;
+        }
+
+        private void ClearForm()
+        {
+            selectedSupplierId = null;
+            txtName.Clear();
+            txtContact.Clear();
+            txtPhone.Clear();
+            txtEmail.Clear();
+            txtAddress.Clear();
+            grid.ClearSelection();
+        }
+    }
+}
+
+using System;
+using System.Linq;
+using System.Windows.Forms;
+using SupplierPurchaseManagement.DAO;
+using SupplierPurchaseManagement.Models;
+
+namespace SupplierPurchaseManagement.Forms
+{
+    public class PurchaseForm : Form
+    {
+        private readonly SupplierDAO _supplierDAO = new SupplierDAO();
+        private readonly PurchaseDAO _purchaseDAO = new PurchaseDAO();
+        private readonly ProductLookupDAO _productDAO = new ProductLookupDAO();
+
+        // TODO: replace with the real logged-in user id once Fernando's
+        // Authentication module is wired in (e.g. CurrentUser.UserId).
+        private const int CurrentUserId = 1;
+
+        private ComboBox cmbSupplier;
+        private Button btnStartPurchase, btnConfirmPurchase, btnDeletePurchase, btnReturns;
+        private Label lblPurchaseInfo, lblTotal;
+
+        private TextBox txtBarcode;
+        private Button btnLookup;
+        private Label lblProductFound;
+        private NumericUpDown numQty;
+        private TextBox txtUnitCost;
+        private Button btnAddItem, btnRemoveItem;
+
+        private DataGridView gridItems;
+
+        private int? currentPurchaseId = null;
+        private ProductLookupDAO.ProductRef lookedUpProduct = null;
+
+        public PurchaseForm()
+        {
+            Text = "New / Manage Purchase";
+            Width = 950;
+            Height = 650;
+            StartPosition = FormStartPosition.CenterScreen;
+
+            BuildUi();
+            LoadSuppliers();
+            SetPurchaseControlsEnabled(false);
+        }
+
+        private void BuildUi()
+        {
+            var lblSupplier = new Label { Text = "Supplier:", Left = 20, Top = 18, Width = 70 };
+            cmbSupplier = new ComboBox { Left = 90, Top = 15, Width = 300, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            btnStartPurchase = new Button { Text = "Start New Purchase", Left = 400, Top = 13, Width = 160, Height = 30 };
+            btnStartPurchase.Click += BtnStartPurchase_Click;
+
+            lblPurchaseInfo = new Label { Text = "No active purchase.", Left = 570, Top = 18, Width = 340, ForeColor = System.Drawing.Color.DimGray };
+
+            // ---- Item entry group ----
+            var lblBarcode = new Label { Text = "Barcode:", Left = 20, Top = 65, Width = 70 };
+            txtBarcode = new TextBox { Left = 90, Top = 62, Width = 150 };
+            btnLookup = new Button { Text = "Lookup", Left = 245, Top = 60, Width = 80 };
+            btnLookup.Click += BtnLookup_Click;
+            lblProductFound = new Label { Text = "", Left = 335, Top = 65, Width = 300, ForeColor = System.Drawing.Color.DarkGreen };
+
+            var lblQty = new Label { Text = "Qty:", Left = 20, Top = 100, Width = 70 };
+            numQty = new NumericUpDown { Left = 90, Top = 97, Width = 80, Minimum = 1, Maximum = 100000, Value = 1 };
+
+            var lblCost = new Label { Text = "Unit Cost:", Left = 190, Top = 100, Width = 70 };
+            txtUnitCost = new TextBox { Left = 265, Top = 97, Width = 100 };
+
+            btnAddItem = new Button { Text = "Add Item to Purchase", Left = 385, Top = 95, Width = 180, Height = 30 };
+            btnAddItem.Click += BtnAddItem_Click;
+
+            gridItems = new DataGridView
+            {
+                Left = 20,
+                Top = 140,
+                Width = 890,
+                Height = 320,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
+
+            btnRemoveItem = new Button { Text = "Remove Selected Item", Left = 20, Top = 470, Width = 180, Height = 32 };
+            btnRemoveItem.Click += BtnRemoveItem_Click;
+
+            lblTotal = new Label
+            {
+                Text = "Total: 0.00",
+                Left = 700,
+                Top = 475,
+                Width = 200,
+                Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold),
+                TextAlign = System.Drawing.ContentAlignment.MiddleRight
+            };
+
+            btnConfirmPurchase = new Button { Text = "Confirm Purchase (Stock +)", Left = 20, Top = 520, Width = 220, Height = 40 };
+            btnConfirmPurchase.Click += BtnConfirmPurchase_Click;
+
+            btnDeletePurchase = new Button { Text = "Delete Draft Purchase", Left = 250, Top = 520, Width = 200, Height = 40 };
+            btnDeletePurchase.Click += BtnDeletePurchase_Click;
+
+            btnReturns = new Button { Text = "Record Purchase Return...", Left = 460, Top = 520, Width = 220, Height = 40 };
+            btnReturns.Click += BtnReturns_Click;
+
+            Controls.AddRange(new Control[]
+            {
+                lblSupplier, cmbSupplier, btnStartPurchase, lblPurchaseInfo,
+                lblBarcode, txtBarcode, btnLookup, lblProductFound,
+                lblQty, numQty, lblCost, txtUnitCost, btnAddItem,
+                gridItems, btnRemoveItem, lblTotal,
+                btnConfirmPurchase, btnDeletePurchase, btnReturns
+            });
+        }
+
+        private void LoadSuppliers()
+        {
+            var suppliers = _supplierDAO.GetAllSuppliers();
+            cmbSupplier.DataSource = suppliers;
+            cmbSupplier.DisplayMember = "Name";
+            cmbSupplier.ValueMember = "SupplierId";
+        }
+
+        private void SetPurchaseControlsEnabled(bool enabled)
+        {
+            txtBarcode.Enabled = enabled;
+            btnLookup.Enabled = enabled;
+            numQty.Enabled = enabled;
+            txtUnitCost.Enabled = enabled;
+            btnAddItem.Enabled = enabled;
+            btnRemoveItem.Enabled = enabled;
+            btnConfirmPurchase.Enabled = enabled;
+            btnDeletePurchase.Enabled = enabled;
+            btnReturns.Enabled = enabled;
+        }
+
+        private void BtnStartPurchase_Click(object sender, EventArgs e)
+        {
+            if (cmbSupplier.SelectedItem is not Supplier supplier)
+            {
+                MessageBox.Show("Select a supplier first.");
+                return;
+            }
+
+            try
+            {
+                currentPurchaseId = _purchaseDAO.StartPurchase(supplier.SupplierId, CurrentUserId, "");
+                lblPurchaseInfo.Text = $"Draft purchase #{currentPurchaseId} - {supplier.Name}";
+                SetPurchaseControlsEnabled(true);
+                RefreshItemsGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not start purchase: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnLookup_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtBarcode.Text)) return;
+
+            try
+            {
+                lookedUpProduct = _productDAO.FindByBarcode(txtBarcode.Text.Trim());
+                lblProductFound.Text = lookedUpProduct != null
+                    ? $"Found: {lookedUpProduct.Name}"
+                    : "No product found for that barcode.";
+                lblProductFound.ForeColor = lookedUpProduct != null
+                    ? System.Drawing.Color.DarkGreen
+                    : System.Drawing.Color.Red;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Product lookup failed (is the shared `products` table set up?): " + ex.Message,
+                    "Lookup Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void BtnAddItem_Click(object sender, EventArgs e)
+        {
+            if (currentPurchaseId == null) return;
+
+            if (lookedUpProduct == null)
+            {
+                MessageBox.Show("Look up a valid product barcode first.");
+                return;
+            }
+
+            if (!decimal.TryParse(txtUnitCost.Text, out decimal unitCost) || unitCost < 0)
+            {
+                MessageBox.Show("Enter a valid unit cost.");
+                return;
+            }
+
+            var item = new PurchaseItem
+            {
+                ProductId = lookedUpProduct.ProductId,
+                Quantity = (int)numQty.Value,
+                UnitCost = unitCost
+            };
+
+            try
+            {
+                _purchaseDAO.AddItem(currentPurchaseId.Value, item);
+                txtBarcode.Clear();
+                txtUnitCost.Clear();
+                numQty.Value = 1;
+                lblProductFound.Text = "";
+                lookedUpProduct = null;
+                RefreshItemsGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not add item: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnRemoveItem_Click(object sender, EventArgs e)
+        {
+            if (gridItems.CurrentRow?.DataBoundItem is not PurchaseItem item) return;
+
+            _purchaseDAO.RemoveItem(item.PurchaseItemId);
+            RefreshItemsGrid();
+        }
+
+        private void BtnConfirmPurchase_Click(object sender, EventArgs e)
+        {
+            if (currentPurchaseId == null) return;
+
+            var purchase = _purchaseDAO.GetPurchaseById(currentPurchaseId.Value);
+            if (purchase == null || purchase.Items.Count == 0)
+            {
+                MessageBox.Show("Add at least one item before confirming.");
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"Confirm this purchase? Stock will increase for {purchase.Items.Count} item(s). This cannot be undone directly (use a Purchase Return instead).",
+                "Confirm Purchase", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes) return;
+
+            try
+            {
+                _purchaseDAO.ConfirmPurchase(currentPurchaseId.Value);
+                MessageBox.Show("Purchase confirmed and stock updated.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ResetPurchaseState();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not confirm purchase: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnDeletePurchase_Click(object sender, EventArgs e)
+        {
+            if (currentPurchaseId == null) return;
+
+            var confirm = MessageBox.Show("Delete this draft purchase and all its items? This cannot be undone.",
+                "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (confirm != DialogResult.Yes) return;
+
+            try
+            {
+                _purchaseDAO.DeleteUnconfirmedPurchase(currentPurchaseId.Value);
+                ResetPurchaseState();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not delete purchase: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnReturns_Click(object sender, EventArgs e)
+        {
+            if (currentPurchaseId == null) return;
+            using var form = new PurchaseReturnForm(currentPurchaseId.Value);
+            form.ShowDialog();
+            RefreshItemsGrid();
+        }
+
+        private void RefreshItemsGrid()
+        {
+            if (currentPurchaseId == null) return;
+
+            var items = _purchaseDAO.GetItemsForPurchase(currentPurchaseId.Value);
+            gridItems.DataSource = null;
+            gridItems.DataSource = items;
+
+            if (gridItems.Columns["PurchaseItemId"] != null) gridItems.Columns["PurchaseItemId"].HeaderText = "ID";
+            if (gridItems.Columns["PurchaseId"] != null) gridItems.Columns["PurchaseId"].Visible = false;
+            if (gridItems.Columns["ProductId"] != null) gridItems.Columns["ProductId"].Visible = false;
+            if (gridItems.Columns["ProductName"] != null) gridItems.Columns["ProductName"].HeaderText = "Product";
+            if (gridItems.Columns["UnitCost"] != null) gridItems.Columns["UnitCost"].HeaderText = "Unit Cost";
+            if (gridItems.Columns["LineTotal"] != null) gridItems.Columns["LineTotal"].HeaderText = "Line Total";
+
+            decimal total = items.Sum(i => i.LineTotal);
+            lblTotal.Text = $"Total: {total:N2}";
+        }
+
+        private void ResetPurchaseState()
+        {
+            currentPurchaseId = null;
+            lblPurchaseInfo.Text = "No active purchase.";
+            gridItems.DataSource = null;
+            lblTotal.Text = "Total: 0.00";
+            SetPurchaseControlsEnabled(false);
+        }
+    }
+}
+
+using System;
+using System.Linq;
+using System.Windows.Forms;
+using SupplierPurchaseManagement.DAO;
+using SupplierPurchaseManagement.Models;
+
+namespace SupplierPurchaseManagement.Forms
+{
+    public class PurchaseReturnForm : Form
+    {
+        private readonly PurchaseDAO _purchaseDAO = new PurchaseDAO();
+        private readonly int _purchaseId;
+
+        private ComboBox cmbItem;
+        private NumericUpDown numQty;
+        private TextBox txtReason;
+        private DataGridView gridReturns;
+        private Button btnSubmit;
+
+        public PurchaseReturnForm(int purchaseId)
+        {
+            _purchaseId = purchaseId;
+            Text = $"Purchase Return - Purchase #{purchaseId}";
+            Width = 620;
+            Height = 500;
+            StartPosition = FormStartPosition.CenterParent;
+
+            BuildUi();
+            LoadItems();
+            LoadReturns();
+        }
+
+        private void BuildUi()
+        {
+            var lblItem = new Label { Text = "Item:", Left = 20, Top = 20, Width = 60 };
+            cmbItem = new ComboBox { Left = 90, Top = 17, Width = 480, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            var lblQty = new Label { Text = "Qty to return:", Left = 20, Top = 55, Width = 90 };
+            numQty = new NumericUpDown { Left = 120, Top = 52, Width = 80, Minimum = 1, Maximum = 100000 };
+
+            var lblReason = new Label { Text = "Reason:", Left = 220, Top = 55, Width = 60 };
+            txtReason = new TextBox { Left = 280, Top = 52, Width = 290 };
+
+            btnSubmit = new Button { Text = "Record Return (Stock -)", Left = 20, Top = 90, Width = 200, Height = 32 };
+            btnSubmit.Click += BtnSubmit_Click;
+
+            gridReturns = new DataGridView
+            {
+                Left = 20,
+                Top = 140,
+                Width = 550,
+                Height = 280,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
+
+            Controls.AddRange(new Control[] { lblItem, cmbItem, lblQty, numQty, lblReason, txtReason, btnSubmit, gridReturns });
+        }
+
+        private void LoadItems()
+        {
+            var items = _purchaseDAO.GetItemsForPurchase(_purchaseId);
+            cmbItem.DataSource = items;
+            cmbItem.DisplayMember = "ProductName";
+            cmbItem.ValueMember = "PurchaseItemId";
+        }
+
+        private void LoadReturns()
+        {
+            var returns = _purchaseDAO.GetReturnsForPurchase(_purchaseId);
+            gridReturns.DataSource = null;
+            gridReturns.DataSource = returns;
+
+            if (gridReturns.Columns["PurchaseReturnId"] != null) gridReturns.Columns["PurchaseReturnId"].HeaderText = "ID";
+            if (gridReturns.Columns["PurchaseItemId"] != null) gridReturns.Columns["PurchaseItemId"].Visible = false;
+            if (gridReturns.Columns["ProductId"] != null) gridReturns.Columns["ProductId"].Visible = false;
+            if (gridReturns.Columns["ProductName"] != null) gridReturns.Columns["ProductName"].HeaderText = "Product";
+            if (gridReturns.Columns["QuantityReturned"] != null) gridReturns.Columns["QuantityReturned"].HeaderText = "Qty";
+            if (gridReturns.Columns["RefundAmount"] != null) gridReturns.Columns["RefundAmount"].HeaderText = "Refund";
+        }
+
+        private void BtnSubmit_Click(object sender, EventArgs e)
+        {
+            if (cmbItem.SelectedItem is not PurchaseItem item)
+            {
+                MessageBox.Show("Select an item to return.");
+                return;
+            }
+
+            if (numQty.Value > item.Quantity)
+            {
+                MessageBox.Show($"Cannot return more than the purchased quantity ({item.Quantity}).");
+                return;
+            }
+
+            var purchaseReturn = new PurchaseReturn
+            {
+                PurchaseItemId = item.PurchaseItemId,
+                ProductId = item.ProductId,
+                QuantityReturned = (int)numQty.Value,
+                UnitCost = item.UnitCost,
+                Reason = txtReason.Text.Trim()
+            };
+
+            try
+            {
+                _purchaseDAO.RecordPurchaseReturn(purchaseReturn);
+                MessageBox.Show("Return recorded and stock decreased.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                txtReason.Clear();
+                numQty.Value = 1;
+                LoadReturns();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not record return: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+}
+
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using SupplierPurchaseManagement.Data;
+
+namespace SupplierPurchaseManagement.Forms
+{
+    public class MainForm : Form
+    {
+        private Label lblStatus;
+
+        public MainForm()
+        {
+            Text = "Supplier & Purchase Management";
+            Width = 480;
+            Height = 380;
+            StartPosition = FormStartPosition.CenterScreen;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+
+            var lblTitle = new Label
+            {
+                Text = "Supplier & Purchase Management",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Top,
+                Height = 60
+            };
+
+            var btnSuppliers = MakeButton("Manage Suppliers", 100);
+            btnSuppliers.Click += (s, e) => new SupplierForm().ShowDialog();
+
+            var btnPurchases = MakeButton("New / Manage Purchases", 150);
+            btnPurchases.Click += (s, e) => new PurchaseForm().ShowDialog();
+
+            var btnHistory = MakeButton("Purchase History & Report", 200);
+            btnHistory.Click += (s, e) => new PurchaseHistoryForm().ShowDialog();
+
+            lblStatus = new Label
+            {
+                Text = "Checking database connection...",
+                AutoSize = false,
+                Dock = DockStyle.Bottom,
+                Height = 30,
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.DimGray
+            };
+
+            Controls.Add(lblTitle);
+            Controls.Add(btnSuppliers);
+            Controls.Add(btnPurchases);
+            Controls.Add(btnHistory);
+            Controls.Add(lblStatus);
+
+            Load += MainForm_Load;
+        }
+
+        private Button MakeButton(string text, int top)
+        {
+            return new Button
+            {
+                Text = text,
+                Left = 90,
+                Top = top,
+                Width = 280,
+                Height = 40,
+                Font = new Font("Segoe UI", 10)
+            };
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            if (DatabaseConnection.TestConnection(out string error))
+            {
+                lblStatus.Text = "Connected to database.";
+                lblStatus.ForeColor = Color.Green;
+            }
+            else
+            {
+                lblStatus.Text = "Database connection failed - check Data/DatabaseConnection.cs";
+                lblStatus.ForeColor = Color.Red;
+                MessageBox.Show(
+                    "Could not connect to the database.\n\n" + error +
+                    "\n\nUpdate the connection settings in Data/DatabaseConnection.cs and run Database/schema.sql first.",
+                    "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+    }
+}
+
+using System;
+using System.Linq;
+using System.Windows.Forms;
+using SupplierPurchaseManagement.DAO;
+using SupplierPurchaseManagement.Models;
+
+namespace SupplierPurchaseManagement.Forms
+{
+    public class PurchaseHistoryForm : Form
+    {
+        private readonly PurchaseDAO _purchaseDAO = new PurchaseDAO();
+        private readonly SupplierDAO _supplierDAO = new SupplierDAO();
+
+        private DateTimePicker dtFrom, dtTo;
+        private ComboBox cmbSupplierFilter;
+        private Button btnFilter;
+        private DataGridView gridHistory, gridItems;
+        private Label lblGrandTotal;
+
+        public PurchaseHistoryForm()
+        {
+            Text = "Purchase History & Report";
+            Width = 1000;
+            Height = 650;
+            StartPosition = FormStartPosition.CenterScreen;
+
+            BuildUi();
+            LoadSuppliers();
+            LoadHistory();
+        }
+
+        private void BuildUi()
+        {
+            var lblFrom = new Label { Text = "From:", Left = 20, Top = 18, Width = 50 };
+            dtFrom = new DateTimePicker { Left = 70, Top = 15, Width = 130, Value = DateTime.Now.AddMonths(-1) };
+
+            var lblTo = new Label { Text = "To:", Left = 210, Top = 18, Width = 30 };
+            dtTo = new DateTimePicker { Left = 245, Top = 15, Width = 130, Value = DateTime.Now };
+
+            var lblSupplier = new Label { Text = "Supplier:", Left = 390, Top = 18, Width = 60 };
+            cmbSupplierFilter = new ComboBox { Left = 455, Top = 15, Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            btnFilter = new Button { Text = "Apply Filter", Left = 690, Top = 13, Width = 120, Height = 28 };
+            btnFilter.Click += (s, e) => LoadHistory();
+
+            gridHistory = new DataGridView
+            {
+                Left = 20,
+                Top = 55,
+                Width = 940,
+                Height = 260,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
+            gridHistory.SelectionChanged += GridHistory_SelectionChanged;
+
+            var lblItemsHeader = new Label { Text = "Items for selected purchase:", Left = 20, Top = 325, Width = 250, Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Bold) };
+
+            gridItems = new DataGridView
+            {
+                Left = 20,
+                Top = 350,
+                Width = 940,
+                Height = 200,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
+
+            lblGrandTotal = new Label
+            {
+                Text = "Total confirmed purchases in range: 0.00",
+                Left = 20,
+                Top = 560,
+                Width = 500,
+                Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold)
+            };
+
+            Controls.AddRange(new Control[]
+            {
+                lblFrom, dtFrom, lblTo, dtTo, lblSupplier, cmbSupplierFilter, btnFilter,
+                gridHistory, lblItemsHeader, gridItems, lblGrandTotal
+            });
+        }
+
+        private void LoadSuppliers()
+        {
+            var suppliers = _supplierDAO.GetAllSuppliers(includeInactive: true).ToList();
+            suppliers.Insert(0, new Supplier { SupplierId = 0, Name = "(All Suppliers)" });
+            cmbSupplierFilter.DataSource = suppliers;
+            cmbSupplierFilter.DisplayMember = "Name";
+            cmbSupplierFilter.ValueMember = "SupplierId";
+        }
+
+        private void LoadHistory()
+        {
+            int? supplierId = (cmbSupplierFilter.SelectedItem as Supplier)?.SupplierId;
+            if (supplierId == 0) supplierId = null;
+
+            var purchases = _purchaseDAO.GetPurchaseHistory(dtFrom.Value.Date, dtTo.Value.Date.AddDays(1).AddSeconds(-1), supplierId);
+            gridHistory.DataSource = null;
+            gridHistory.DataSource = purchases;
+
+            if (gridHistory.Columns["PurchaseId"] != null) gridHistory.Columns["PurchaseId"].HeaderText = "ID";
+            if (gridHistory.Columns["SupplierId"] != null) gridHistory.Columns["SupplierId"].Visible = false;
+            if (gridHistory.Columns["SupplierName"] != null) gridHistory.Columns["SupplierName"].HeaderText = "Supplier";
+            if (gridHistory.Columns["RecordedByUserId"] != null) gridHistory.Columns["RecordedByUserId"].HeaderText = "Recorded By (User ID)";
+            if (gridHistory.Columns["PurchaseDate"] != null) gridHistory.Columns["PurchaseDate"].HeaderText = "Date";
+            if (gridHistory.Columns["TotalAmount"] != null) gridHistory.Columns["TotalAmount"].HeaderText = "Total";
+            if (gridHistory.Columns["Items"] != null) gridHistory.Columns["Items"].Visible = false;
+
+            decimal grandTotal = _purchaseDAO.GetTotalPurchasesInRange(dtFrom.Value.Date, dtTo.Value.Date.AddDays(1).AddSeconds(-1));
+            lblGrandTotal.Text = $"Total confirmed purchases in range: {grandTotal:N2}";
+        }
+
+        private void GridHistory_SelectionChanged(object sender, EventArgs e)
+        {
+            if (gridHistory.CurrentRow?.DataBoundItem is not Purchase purchase)
+            {
+                gridItems.DataSource = null;
+                return;
+            }
+
+            var items = _purchaseDAO.GetItemsForPurchase(purchase.PurchaseId);
+            gridItems.DataSource = null;
+            gridItems.DataSource = items;
+
+            if (gridItems.Columns["PurchaseItemId"] != null) gridItems.Columns["PurchaseItemId"].Visible = false;
+            if (gridItems.Columns["PurchaseId"] != null) gridItems.Columns["PurchaseId"].Visible = false;
+            if (gridItems.Columns["ProductId"] != null) gridItems.Columns["ProductId"].Visible = false;
+            if (gridItems.Columns["ProductName"] != null) gridItems.Columns["ProductName"].HeaderText = "Product";
+            if (gridItems.Columns["UnitCost"] != null) gridItems.Columns["UnitCost"].HeaderText = "Unit Cost";
+            if (gridItems.Columns["LineTotal"] != null) gridItems.Columns["LineTotal"].HeaderText = "Line Total";
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using MySql.Data.MySqlClient;
+using SupplierPurchaseManagement.Data;
+using SupplierPurchaseManagement.Models;
+
+namespace SupplierPurchaseManagement.DAO
+{
+    public class SupplierDAO
+    {
+        public int AddSupplier(Supplier supplier)
+        {
+            const string sql = @"INSERT INTO suppliers (name, contact_person, phone, email, address, is_active, created_at)
+                                  VALUES (@name, @contact, @phone, @email, @address, 1, NOW());
+                                  SELECT LAST_INSERT_ID();";
+
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", supplier.Name);
+            cmd.Parameters.AddWithValue("@contact", supplier.ContactPerson ?? "");
+            cmd.Parameters.AddWithValue("@phone", supplier.Phone ?? "");
+            cmd.Parameters.AddWithValue("@email", supplier.Email ?? "");
+            cmd.Parameters.AddWithValue("@address", supplier.Address ?? "");
+
+            var newId = Convert.ToInt32(cmd.ExecuteScalar());
+            return newId;
+        }
+
+        public List<Supplier> GetAllSuppliers(bool includeInactive = false)
+        {
+            var suppliers = new List<Supplier>();
+            string sql = "SELECT * FROM suppliers";
+            if (!includeInactive) sql += " WHERE is_active = 1";
+            sql += " ORDER BY name";
+
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                suppliers.Add(MapSupplier(reader));
+
+            return suppliers;
+        }
+
+        public Supplier GetSupplierById(int supplierId)
+        {
+            const string sql = "SELECT * FROM suppliers WHERE supplier_id = @id";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", supplierId);
+            using var reader = cmd.ExecuteReader();
+            return reader.Read() ? MapSupplier(reader) : null;
+        }
+
+        public List<Supplier> SearchSuppliers(string keyword)
+        {
+            var suppliers = new List<Supplier>();
+            const string sql = @"SELECT * FROM suppliers
+                                  WHERE is_active = 1 AND (name LIKE @kw OR contact_person LIKE @kw OR phone LIKE @kw)
+                                  ORDER BY name";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@kw", $"%{keyword}%");
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                suppliers.Add(MapSupplier(reader));
+            return suppliers;
+        }
+
+        public bool UpdateSupplier(Supplier supplier)
+        {
+            const string sql = @"UPDATE suppliers SET name=@name, contact_person=@contact, phone=@phone,
+                                  email=@email, address=@address WHERE supplier_id=@id";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", supplier.Name);
+            cmd.Parameters.AddWithValue("@contact", supplier.ContactPerson ?? "");
+            cmd.Parameters.AddWithValue("@phone", supplier.Phone ?? "");
+            cmd.Parameters.AddWithValue("@email", supplier.Email ?? "");
+            cmd.Parameters.AddWithValue("@address", supplier.Address ?? "");
+            cmd.Parameters.AddWithValue("@id", supplier.SupplierId);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        /// <summary>Soft delete - deactivate rather than hard-delete, so purchase history stays intact.</summary>
+        public bool DeactivateSupplier(int supplierId)
+        {
+            const string sql = "UPDATE suppliers SET is_active = 0 WHERE supplier_id = @id";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", supplierId);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        private Supplier MapSupplier(MySqlDataReader reader)
+        {
+            return new Supplier
+            {
+                SupplierId = reader.GetInt32("supplier_id"),
+                Name = reader.GetString("name"),
+                ContactPerson = reader["contact_person"]?.ToString(),
+                Phone = reader["phone"]?.ToString(),
+                Email = reader["email"]?.ToString(),
+                Address = reader["address"]?.ToString(),
+                IsActive = reader.GetBoolean("is_active"),
+                CreatedAt = reader.GetDateTime("created_at")
+            };
+        }
+    }
+}
+
+using System.Collections.Generic;
+using MySql.Data.MySqlClient;
+using SupplierPurchaseManagement.Data;
+
+namespace SupplierPurchaseManagement.DAO
+{
+    /// <summary>
+    /// READ-ONLY access to the `products` table, owned by the Product &amp;
+    /// Category module. Per the team's responsibility map, Supplier/Purchase
+    /// may USE product data (to look up a barcode when receiving stock) but
+    /// must NOT own product CRUD - that stays entirely in Anurasiri's module.
+    /// If the shared `products` table doesn't exist yet in your local DB,
+    /// these calls will just return no results / null until it's merged in.
+    /// </summary>
+    public class ProductLookupDAO
+    {
+        public class ProductRef
+        {
+            public int ProductId { get; set; }
+            public string Name { get; set; }
+            public string Barcode { get; set; }
+        }
+
+        public ProductRef FindByBarcode(string barcode)
+        {
+            const string sql = "SELECT product_id, name, barcode FROM products WHERE barcode = @barcode LIMIT 1";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@barcode", barcode);
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return new ProductRef
+                {
+                    ProductId = reader.GetInt32("product_id"),
+                    Name = reader.GetString("name"),
+                    Barcode = reader.GetString("barcode")
+                };
+            }
+            return null;
+        }
+
+        public List<ProductRef> SearchByName(string nameFragment)
+        {
+            var results = new List<ProductRef>();
+            const string sql = "SELECT product_id, name, barcode FROM products WHERE name LIKE @name LIMIT 30";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", $"%{nameFragment}%");
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                results.Add(new ProductRef
+                {
+                    ProductId = reader.GetInt32("product_id"),
+                    Name = reader.GetString("name"),
+                    Barcode = reader.GetString("barcode")
+                });
+            }
+            return results;
+        }
+
+        /// <summary>
+        /// Increases stock for a product after a purchase is confirmed, or
+        /// decreases it after a purchase return. This is the ONE agreed
+        /// exception where Purchase is allowed to touch the products table -
+        /// per the team's rule ("Purchase confirmed -> Stock+", "Purchase
+        /// return -> Stock-"). Everything else about products stays owned by
+        /// the Product module.
+        /// </summary>
+        public void AdjustStock(int productId, int quantityDelta, MySqlConnection conn, MySqlTransaction tx)
+        {
+            const string sql = "UPDATE products SET current_stock = current_stock + @delta WHERE product_id = @id";
+            using var cmd = new MySqlCommand(sql, conn, tx);
+            cmd.Parameters.AddWithValue("@delta", quantityDelta);
+            cmd.Parameters.AddWithValue("@id", productId);
+            cmd.ExecuteNonQuery();
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using MySql.Data.MySqlClient;
+using SupplierPurchaseManagement.Data;
+using SupplierPurchaseManagement.Models;
+
+namespace SupplierPurchaseManagement.DAO
+{
+    public class PurchaseDAO
+    {
+        private readonly ProductLookupDAO _productLookup = new ProductLookupDAO();
+
+        // ---------- Purchase (header) CRUD ----------
+
+        /// <summary>Creates a new DRAFT purchase (unconfirmed, editable).</summary>
+        public int StartPurchase(int supplierId, int recordedByUserId, string notes)
+        {
+            const string sql = @"INSERT INTO purchases (supplier_id, recorded_by_user_id, purchase_date, status, total_amount, notes)
+                                  VALUES (@supplierId, @userId, NOW(), 'Draft', 0, @notes);
+                                  SELECT LAST_INSERT_ID();";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@supplierId", supplierId);
+            cmd.Parameters.AddWithValue("@userId", recordedByUserId);
+            cmd.Parameters.AddWithValue("@notes", notes ?? "");
+            return Convert.ToInt32(cmd.ExecuteScalar());
+        }
+
+        public Purchase GetPurchaseById(int purchaseId)
+        {
+            const string sql = @"SELECT p.*, s.name AS supplier_name FROM purchases p
+                                  JOIN suppliers s ON s.supplier_id = p.supplier_id
+                                  WHERE p.purchase_id = @id";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", purchaseId);
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+
+            var purchase = MapPurchase(reader);
+            reader.Close();
+            purchase.Items = GetItemsForPurchase(purchaseId);
+            return purchase;
+        }
+
+        public List<Purchase> GetPurchaseHistory(DateTime? from = null, DateTime? to = null, int? supplierId = null)
+        {
+            var purchases = new List<Purchase>();
+            var sql = @"SELECT p.*, s.name AS supplier_name FROM purchases p
+                        JOIN suppliers s ON s.supplier_id = p.supplier_id
+                        WHERE 1=1";
+            if (from.HasValue) sql += " AND p.purchase_date >= @from";
+            if (to.HasValue) sql += " AND p.purchase_date <= @to";
+            if (supplierId.HasValue) sql += " AND p.supplier_id = @supplierId";
+            sql += " ORDER BY p.purchase_date DESC";
+
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            if (from.HasValue) cmd.Parameters.AddWithValue("@from", from.Value);
+            if (to.HasValue) cmd.Parameters.AddWithValue("@to", to.Value);
+            if (supplierId.HasValue) cmd.Parameters.AddWithValue("@supplierId", supplierId.Value);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                purchases.Add(MapPurchase(reader));
+
+            return purchases;
+        }
+
+        /// <summary>Only Draft purchases may be modified.</summary>
+        public bool UpdatePurchaseNotes(int purchaseId, string notes)
+        {
+            const string sql = "UPDATE purchases SET notes=@notes WHERE purchase_id=@id AND status='Draft'";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@notes", notes ?? "");
+            cmd.Parameters.AddWithValue("@id", purchaseId);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        /// <summary>Only Draft purchases may be deleted.</summary>
+        public bool DeleteUnconfirmedPurchase(int purchaseId)
+        {
+            using var conn = DatabaseConnection.GetConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                using (var cmd = new MySqlCommand(
+                    "DELETE FROM purchase_items WHERE purchase_id=@id AND purchase_id IN (SELECT purchase_id FROM purchases WHERE purchase_id=@id AND status='Draft')",
+                    conn, tx))
+                {
+                    cmd.Parameters.AddWithValue("@id", purchaseId);
+                    cmd.ExecuteNonQuery();
+                }
+
+                int affected;
+                using (var cmd = new MySqlCommand("DELETE FROM purchases WHERE purchase_id=@id AND status='Draft'", conn, tx))
+                {
+                    cmd.Parameters.AddWithValue("@id", purchaseId);
+                    affected = cmd.ExecuteNonQuery();
+                }
+
+                tx.Commit();
+                return affected > 0;
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
+
+        // ---------- Purchase items ----------
+
+        public int AddItem(int purchaseId, PurchaseItem item)
+        {
+            const string sql = @"INSERT INTO purchase_items (purchase_id, product_id, quantity, unit_cost)
+                                  VALUES (@purchaseId, @productId, @qty, @cost);
+                                  SELECT LAST_INSERT_ID();";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@purchaseId", purchaseId);
+            cmd.Parameters.AddWithValue("@productId", item.ProductId);
+            cmd.Parameters.AddWithValue("@qty", item.Quantity);
+            cmd.Parameters.AddWithValue("@cost", item.UnitCost);
+            var newId = Convert.ToInt32(cmd.ExecuteScalar());
+
+            RecalculateTotal(purchaseId, conn);
+            return newId;
+        }
+
+        public bool UpdateItemQuantityOrCost(int purchaseItemId, int quantity, decimal unitCost)
+        {
+            const string sql = "UPDATE purchase_items SET quantity=@qty, unit_cost=@cost WHERE purchase_item_id=@id";
+            using var conn = DatabaseConnection.GetConnection();
+            int purchaseId = GetPurchaseIdForItem(purchaseItemId, conn);
+
+            using (var cmd = new MySqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@qty", quantity);
+                cmd.Parameters.AddWithValue("@cost", unitCost);
+                cmd.Parameters.AddWithValue("@id", purchaseItemId);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (purchaseId > 0) RecalculateTotal(purchaseId, conn);
+            return true;
+        }
+
+        public bool RemoveItem(int purchaseItemId)
+        {
+            using var conn = DatabaseConnection.GetConnection();
+            int purchaseId = GetPurchaseIdForItem(purchaseItemId, conn);
+
+            using (var cmd = new MySqlCommand("DELETE FROM purchase_items WHERE purchase_item_id=@id", conn))
+            {
+                cmd.Parameters.AddWithValue("@id", purchaseItemId);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (purchaseId > 0) RecalculateTotal(purchaseId, conn);
+            return true;
+        }
+
+        public List<PurchaseItem> GetItemsForPurchase(int purchaseId)
+        {
+            var items = new List<PurchaseItem>();
+            const string sql = @"SELECT pi.*, pr.name AS product_name, pr.barcode FROM purchase_items pi
+                                  LEFT JOIN products pr ON pr.product_id = pi.product_id
+                                  WHERE pi.purchase_id = @id";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", purchaseId);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                items.Add(new PurchaseItem
+                {
+                    PurchaseItemId = reader.GetInt32("purchase_item_id"),
+                    PurchaseId = reader.GetInt32("purchase_id"),
+                    ProductId = reader.GetInt32("product_id"),
+                    ProductName = reader["product_name"]?.ToString() ?? "(unknown product)",
+                    Barcode = reader["barcode"]?.ToString(),
+                    Quantity = reader.GetInt32("quantity"),
+                    UnitCost = reader.GetDecimal("unit_cost")
+                });
+            }
+            return items;
+        }
+
+        // ---------- Confirm purchase (stock increases) ----------
+
+        /// <summary>
+        /// Confirms a Draft purchase: locks it from further edits and increases
+        /// stock for every line item. Runs as a single transaction so totals,
+        /// status and stock levels never get out of sync.
+        /// </summary>
+        public bool ConfirmPurchase(int purchaseId)
+        {
+            using var conn = DatabaseConnection.GetConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                var items = new List<(int productId, int qty)>();
+                using (var cmd = new MySqlCommand(
+                    "SELECT product_id, quantity FROM purchase_items WHERE purchase_id=@id", conn, tx))
+                {
+                    cmd.Parameters.AddWithValue("@id", purchaseId);
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        items.Add((reader.GetInt32("product_id"), reader.GetInt32("quantity")));
+                }
+
+                if (items.Count == 0)
+                    throw new InvalidOperationException("Cannot confirm a purchase with no items.");
+
+                using (var cmd = new MySqlCommand(
+                    "UPDATE purchases SET status='Confirmed' WHERE purchase_id=@id AND status='Draft'", conn, tx))
+                {
+                    cmd.Parameters.AddWithValue("@id", purchaseId);
+                    int affected = cmd.ExecuteNonQuery();
+                    if (affected == 0)
+                        throw new InvalidOperationException("Purchase is not in Draft status - it may already be confirmed.");
+                }
+
+                foreach (var (productId, qty) in items)
+                    _productLookup.AdjustStock(productId, qty, conn, tx); // Stock +
+
+                tx.Commit();
+                return true;
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
+
+        // ---------- Purchase return (stock decreases) ----------
+
+        public int RecordPurchaseReturn(PurchaseReturn purchaseReturn)
+        {
+            using var conn = DatabaseConnection.GetConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                int newId;
+                const string sql = @"INSERT INTO purchase_returns (purchase_item_id, product_id, quantity_returned, unit_cost, reason, return_date)
+                                      VALUES (@itemId, @productId, @qty, @cost, @reason, NOW());
+                                      SELECT LAST_INSERT_ID();";
+                using (var cmd = new MySqlCommand(sql, conn, tx))
+                {
+                    cmd.Parameters.AddWithValue("@itemId", purchaseReturn.PurchaseItemId);
+                    cmd.Parameters.AddWithValue("@productId", purchaseReturn.ProductId);
+                    cmd.Parameters.AddWithValue("@qty", purchaseReturn.QuantityReturned);
+                    cmd.Parameters.AddWithValue("@cost", purchaseReturn.UnitCost);
+                    cmd.Parameters.AddWithValue("@reason", purchaseReturn.Reason ?? "");
+                    newId = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                _productLookup.AdjustStock(purchaseReturn.ProductId, -purchaseReturn.QuantityReturned, conn, tx); // Stock -
+
+                tx.Commit();
+                return newId;
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
+
+        public List<PurchaseReturn> GetReturnsForPurchase(int purchaseId)
+        {
+            var returns = new List<PurchaseReturn>();
+            const string sql = @"SELECT pr.*, prod.name AS product_name FROM purchase_returns pr
+                                  JOIN purchase_items pi ON pi.purchase_item_id = pr.purchase_item_id
+                                  LEFT JOIN products prod ON prod.product_id = pr.product_id
+                                  WHERE pi.purchase_id = @id
+                                  ORDER BY pr.return_date DESC";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", purchaseId);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                returns.Add(new PurchaseReturn
+                {
+                    PurchaseReturnId = reader.GetInt32("purchase_return_id"),
+                    PurchaseItemId = reader.GetInt32("purchase_item_id"),
+                    ProductId = reader.GetInt32("product_id"),
+                    ProductName = reader["product_name"]?.ToString() ?? "(unknown product)",
+                    QuantityReturned = reader.GetInt32("quantity_returned"),
+                    UnitCost = reader.GetDecimal("unit_cost"),
+                    Reason = reader["reason"]?.ToString(),
+                    ReturnDate = reader.GetDateTime("return_date")
+                });
+            }
+            return returns;
+        }
+
+        // ---------- Reporting ----------
+
+        public decimal GetTotalPurchasesInRange(DateTime from, DateTime to)
+        {
+            const string sql = @"SELECT COALESCE(SUM(total_amount),0) FROM purchases
+                                  WHERE status='Confirmed' AND purchase_date BETWEEN @from AND @to";
+            using var conn = DatabaseConnection.GetConnection();
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@from", from);
+            cmd.Parameters.AddWithValue("@to", to);
+            return Convert.ToDecimal(cmd.ExecuteScalar());
+        }
+
+        // ---------- helpers ----------
+
+        private void RecalculateTotal(int purchaseId, MySqlConnection conn)
+        {
+            const string sql = @"UPDATE purchases SET total_amount =
+                                  (SELECT COALESCE(SUM(quantity*unit_cost),0) FROM purchase_items WHERE purchase_id=@id)
+                                  WHERE purchase_id=@id";
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", purchaseId);
+            cmd.ExecuteNonQuery();
+        }
+
+        private int GetPurchaseIdForItem(int purchaseItemId, MySqlConnection conn)
+        {
+            using var cmd = new MySqlCommand("SELECT purchase_id FROM purchase_items WHERE purchase_item_id=@id", conn);
+            cmd.Parameters.AddWithValue("@id", purchaseItemId);
+            var result = cmd.ExecuteScalar();
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+        private Purchase MapPurchase(MySqlDataReader reader)
+        {
+            return new Purchase
+            {
+                PurchaseId = reader.GetInt32("purchase_id"),
+                SupplierId = reader.GetInt32("supplier_id"),
+                SupplierName = reader["supplier_name"]?.ToString(),
+                RecordedByUserId = reader.GetInt32("recorded_by_user_id"),
+                PurchaseDate = reader.GetDateTime("purchase_date"),
+                Status = Enum.Parse<PurchaseStatus>(reader.GetString("status")),
+                TotalAmount = reader.GetDecimal("total_amount"),
+                Notes = reader["notes"]?.ToString()
+            };
+        }
+    }
+}
+
+using System;
+using MySql.Data.MySqlClient;
+
+namespace SupplierPurchaseManagement.Data
+{
+    /// <summary>
+    /// Standalone DB connection helper for the Supplier &amp; Purchase module.
+    /// NOTE: This is a placeholder for the team's single shared DatabaseConnection
+    /// class. When Fernando/whoever owns the shared infra class provides the real
+    /// one, delete this file and point the DAOs at that class instead (keep the
+    /// same GetConnection() method signature so nothing else needs to change).
+    /// </summary>
+    public static class DatabaseConnection
+    {
+        // TODO: update these for your MySQL server before running.
+        private const string Server = "localhost";
+        private const string Port = "3306";
+        private const string Database = "pos_system";
+        private const string User = "root";
+        private const string Password = "";
+
+        private static string ConnectionString =>
+            $"Server={Server};Port={Port};Database={Database};Uid={User};Pwd={Password};SslMode=none;";
+
+        /// <summary>
+        /// Returns a new, already-open MySqlConnection. Caller is responsible
+        /// for disposing it (use a `using` block).
+        /// </summary>
+        public static MySqlConnection GetConnection()
+        {
+            var connection = new MySqlConnection(ConnectionString);
+            connection.Open();
+            return connection;
+        }
+
+        /// <summary>
+        /// Quick connectivity check, used by the main form on startup.
+        /// </summary>
+        public static bool TestConnection(out string errorMessage)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                errorMessage = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
+    }
+}
