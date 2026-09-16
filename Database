@@ -1,0 +1,90 @@
+-- ============================================================
+-- Supplier & Purchase Management - MySQL schema
+-- ============================================================
+-- This module OWNS: suppliers, purchases, purchase_items, purchase_returns
+-- This module USES (reads/adjusts stock only): products, users
+--
+-- The `products` and `users` stub tables below are placeholders so this
+-- module can run standalone before it's merged with the real Product
+-- (Anurasiri) and User/Auth (Fernando) modules. When merging, DROP these
+-- two stub tables and let the real ones (with the same column names used
+-- here: products.product_id/name/barcode/current_stock,
+-- users.user_id) take over - nothing else in this module needs to change.
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS pos_system;
+USE pos_system;
+
+-- ---------- stub tables (delete once merged with the real modules) ----------
+
+CREATE TABLE IF NOT EXISTS products (
+    product_id     INT AUTO_INCREMENT PRIMARY KEY,
+    name           VARCHAR(150) NOT NULL,
+    barcode        VARCHAR(50) UNIQUE,
+    current_stock  INT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id  INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL
+);
+
+-- a couple of sample rows so the app has something to work with immediately
+INSERT INTO users (user_id, username) VALUES (1, 'admin')
+  ON DUPLICATE KEY UPDATE username = username;
+
+INSERT INTO products (name, barcode, current_stock) VALUES
+  ('Sample Product A', '1000000000001', 0),
+  ('Sample Product B', '1000000000002', 0)
+  ON DUPLICATE KEY UPDATE name = name;
+
+-- ---------- this module's own tables ----------
+
+CREATE TABLE IF NOT EXISTS suppliers (
+    supplier_id     INT AUTO_INCREMENT PRIMARY KEY,
+    name            VARCHAR(150) NOT NULL,
+    contact_person  VARCHAR(150),
+    phone           VARCHAR(30),
+    email           VARCHAR(150),
+    address         VARCHAR(255),
+    is_active       TINYINT(1) NOT NULL DEFAULT 1,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS purchases (
+    purchase_id           INT AUTO_INCREMENT PRIMARY KEY,
+    supplier_id           INT NOT NULL,
+    recorded_by_user_id   INT NOT NULL,
+    purchase_date         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status                ENUM('Draft','Confirmed','Cancelled') NOT NULL DEFAULT 'Draft',
+    total_amount          DECIMAL(14,2) NOT NULL DEFAULT 0,
+    notes                 VARCHAR(255),
+    CONSTRAINT fk_purchase_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
+    CONSTRAINT fk_purchase_user FOREIGN KEY (recorded_by_user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS purchase_items (
+    purchase_item_id  INT AUTO_INCREMENT PRIMARY KEY,
+    purchase_id       INT NOT NULL,
+    product_id        INT NOT NULL,
+    quantity          INT NOT NULL,
+    unit_cost         DECIMAL(14,2) NOT NULL,
+    CONSTRAINT fk_item_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(purchase_id) ON DELETE CASCADE,
+    CONSTRAINT fk_item_product FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+CREATE TABLE IF NOT EXISTS purchase_returns (
+    purchase_return_id  INT AUTO_INCREMENT PRIMARY KEY,
+    purchase_item_id    INT NOT NULL,
+    product_id          INT NOT NULL,
+    quantity_returned   INT NOT NULL,
+    unit_cost           DECIMAL(14,2) NOT NULL,
+    reason               VARCHAR(255),
+    return_date          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_return_item FOREIGN KEY (purchase_item_id) REFERENCES purchase_items(purchase_item_id),
+    CONSTRAINT fk_return_product FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+CREATE INDEX idx_purchases_date ON purchases(purchase_date);
+CREATE INDEX idx_purchases_supplier ON purchases(supplier_id);
+CREATE INDEX idx_purchase_items_purchase ON purchase_items(purchase_id);
