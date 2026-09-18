@@ -3,6 +3,7 @@ package lk.textflow.sales.model;
 import java.math.BigDecimal;
 
 public class SaleItem {
+
     private int saleItemId;
     private int saleId;
     private int productId;
@@ -72,4 +73,3 @@ public class SaleItem {
         this.totalPrice = totalPrice;
     }
 }
-
