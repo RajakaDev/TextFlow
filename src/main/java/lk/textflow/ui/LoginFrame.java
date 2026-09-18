@@ -1,73 +1,176 @@
 package lk.textflow.ui;
 
-import javax.swing.*;
-
 import lk.textflow.model.User;
 import lk.textflow.service.AuthenticationService;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class LoginFrame extends JFrame {
+
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+
+    private AuthenticationService authenticationService;
 
     public LoginFrame() {
 
+        authenticationService =
+                new AuthenticationService();
+
         setTitle("TextFlow - Login");
-        setSize(400, 300);
+        setSize(420, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
-        JPanel panel = new JPanel();
+        JPanel mainPanel = new JPanel();
 
-        JLabel usernameLabel = new JLabel("Username:");
-        JTextField usernameField = new JTextField(15);
+        mainPanel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        25,
+                        35,
+                        25,
+                        35
+                )
+        );
 
-        JLabel passwordLabel = new JLabel("Password:");
-        JPasswordField passwordField = new JPasswordField(15);
+        mainPanel.setLayout(
+                new BoxLayout(
+                        mainPanel,
+                        BoxLayout.Y_AXIS
+                )
+        );
 
-        JButton loginButton = new JButton("Login");
+        JLabel titleLabel =
+                new JLabel(
+                        "TextFlow Login",
+                        SwingConstants.CENTER
+                );
 
-        AuthenticationService authService = new AuthenticationService();
+        titleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        24
+                )
+        );
 
-        panel.add(usernameLabel);
-        panel.add(usernameField);
+        titleLabel.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
 
-        panel.add(passwordLabel);
-        panel.add(passwordField);
+        JPanel formPanel =
+                new JPanel(
+                        new GridLayout(
+                                2,
+                                2,
+                                10,
+                                15
+                        )
+                );
 
-        panel.add(loginButton);
+        usernameField =
+                new JTextField();
 
-        add(panel);
+        passwordField =
+                new JPasswordField();
+
+        formPanel.add(
+                new JLabel("Username:")
+        );
+
+        formPanel.add(usernameField);
+
+        formPanel.add(
+                new JLabel("Password:")
+        );
+
+        formPanel.add(passwordField);
+
+        JButton loginButton =
+                new JButton("Login");
+
+        loginButton.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        mainPanel.add(titleLabel);
+
+        mainPanel.add(
+                Box.createVerticalStrut(30)
+        );
+
+        mainPanel.add(formPanel);
+
+        mainPanel.add(
+                Box.createVerticalStrut(20)
+        );
+
+        mainPanel.add(loginButton);
+
+        add(mainPanel);
 
 
         loginButton.addActionListener(e -> {
 
-            String username = usernameField.getText();
-            String password = new String(passwordField.getPassword());
+            String username =
+                    usernameField
+                            .getText()
+                            .trim();
 
-            User user = authService.login(username, password);
+            String password =
+                    new String(
+                            passwordField
+                                    .getPassword()
+                    );
+
+            if (username.isEmpty()
+                    || password.isEmpty()) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Please enter username and password."
+                );
+
+                return;
+            }
+
+            User user =
+                    authenticationService.login(
+                            username,
+                            password
+                    );
 
             if (user != null) {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Login successful! Welcome " + user.getName()
+                        "Login successful!\nWelcome "
+                                + user.getName()
                 );
 
-                UserManagementFrame userManagementFrame =
-                        new UserManagementFrame();
+                UserManagementFrame frame =
+                        new UserManagementFrame(user);
 
-                userManagementFrame.setVisible(true);
+                frame.setVisible(true);
 
                 dispose();
-            }
 
-            else {
+            } else {
+
                 JOptionPane.showMessageDialog(
                         this,
                         "Invalid username, password, or inactive account."
                 );
+
+                passwordField.setText("");
             }
         });
 
+
+        passwordField.addActionListener(
+                e -> loginButton.doClick()
+        );
     }
-
-
 }

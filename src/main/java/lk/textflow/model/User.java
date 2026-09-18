@@ -14,12 +14,11 @@ public class User {
     private String status;
     private LocalDateTime createdAt;
 
-    //Empty Contructor
-    public User(){
-
+    // Empty Constructor
+    public User() {
     }
 
-    //Full Constructor
+    // Full Constructor
     public User(int userId,
                 String name,
                 String username,
@@ -28,8 +27,8 @@ public class User {
                 String position,
                 String contactNumber,
                 String status,
-                LocalDateTime createdAt)
-    {
+                LocalDateTime createdAt) {
+
         this.userId = userId;
         this.name = name;
         this.username = username;
@@ -38,8 +37,7 @@ public class User {
         this.position = position;
         this.contactNumber = contactNumber;
         this.status = status;
-        this.createdAt = LocalDateTime.now();
-
+        this.createdAt = createdAt;
     }
 
     public int getUserId() {
@@ -113,6 +111,4 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-
 }
