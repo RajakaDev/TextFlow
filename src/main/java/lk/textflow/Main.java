@@ -1,21 +1,34 @@
 package lk.textflow;
 
-import lk.textflow.config.DatabaseConnection;
-import java.sql.Connection;
+import lk.textflow.dao.InventoryAdjustmentDAO;
+import lk.textflow.model.InventoryAdjustment;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        try (Connection connection =
-                     DatabaseConnection.getConnection()) {
+        InventoryAdjustmentDAO dao =
+                new InventoryAdjustmentDAO();
 
+        InventoryAdjustment adjustment =
+                new InventoryAdjustment(
+                        3,
+                        1,
+                        10,
+                        "Stock correction"
+                );
+
+        boolean success =
+                dao.adjustStock(adjustment);
+
+        if (success) {
             System.out.println(
-                    "TextFlow database connected successfully!"
+                    "Stock adjusted successfully!"
             );
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            System.out.println(
+                    "Stock adjustment failed!"
+            );
         }
     }
 }
