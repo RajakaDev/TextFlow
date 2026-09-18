@@ -126,4 +126,47 @@ public class SaleDAO {
 
         return false;
     }
+
+    public java.util.List<Sale> getAllSales() {
+
+        java.util.List<Sale> sales = new java.util.ArrayList<>();
+
+        String sql = "SELECT * FROM sales ORDER BY sale_date DESC";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet rs = statement.executeQuery()) {
+
+            while (rs.next()) {
+
+                Sale sale = new Sale();
+
+                sale.setSaleId(rs.getInt("sale_id"));
+
+                int customerId = rs.getInt("customer_id");
+                if (rs.wasNull()) {
+                    sale.setCustomerId(null);
+                } else {
+                    sale.setCustomerId(customerId);
+                }
+
+                sale.setUserId(rs.getInt("user_id"));
+                sale.setSaleDate(
+                        rs.getTimestamp("sale_date").toLocalDateTime());
+                sale.setTotalAmount(rs.getBigDecimal("total_amount"));
+                sale.setAmountGiven(rs.getBigDecimal("amount_given"));
+                sale.setBalance(rs.getBigDecimal("balance"));
+                sale.setPaymentMethod(rs.getString("payment_method"));
+                sale.setPaymentStatus(rs.getString("payment_status"));
+                sale.setStatus(rs.getString("status"));
+
+                sales.add(sale);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return sales;
+    }
 }
