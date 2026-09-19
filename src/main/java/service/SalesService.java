@@ -1,4 +1,4 @@
-package service;
+package lk.textflow.service;
 
 import lk.textflow.sales.model.SaleItem;
 
@@ -21,12 +21,14 @@ public class SalesService {
         return total;
     }
 
-    public BigDecimal calculateBalance(BigDecimal totalAmount, BigDecimal amountGiven) {
+    public BigDecimal calculateBalance(BigDecimal totalAmount,
+                                       BigDecimal amountGiven) {
 
         return totalAmount.subtract(amountGiven);
     }
 
-    public String determinePaymentStatus(BigDecimal totalAmount, BigDecimal amountGiven) {
+    public String determinePaymentStatus(BigDecimal totalAmount,
+                                         BigDecimal amountGiven) {
 
         if (amountGiven.compareTo(BigDecimal.ZERO) <= 0) {
             return "PENDING";
@@ -39,4 +41,3 @@ public class SalesService {
         return "PARTIAL";
     }
 }
-

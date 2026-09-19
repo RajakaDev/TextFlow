@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Sale {
+
     private int saleId;
     private Integer customerId;
     private int userId;
@@ -116,5 +117,3 @@ public class Sale {
         this.status = status;
     }
 }
-
-

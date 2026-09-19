@@ -1,34 +1,23 @@
 package lk.textflow;
 
-import lk.textflow.dao.InventoryAdjustmentDAO;
-import lk.textflow.model.InventoryAdjustment;
+import lk.textflow.sales.dao.SaleDAO;
+import lk.textflow.sales.model.Sale;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        InventoryAdjustmentDAO dao =
-                new InventoryAdjustmentDAO();
+        SaleDAO saleDAO = new SaleDAO();
 
-        InventoryAdjustment adjustment =
-                new InventoryAdjustment(
-                        3,
-                        1,
-                        10,
-                        "Stock correction"
-                );
+        Sale sale = saleDAO.getSaleById(1);
 
-        boolean success =
-                dao.adjustStock(adjustment);
-
-        if (success) {
-            System.out.println(
-                    "Stock adjusted successfully!"
-            );
+        if (sale == null) {
+            System.out.println("SaleDAO connection test successful!");
+            System.out.println("No sale with ID 1 found.");
         } else {
-            System.out.println(
-                    "Stock adjustment failed!"
-            );
+            System.out.println("Sale found!");
+            System.out.println("Sale ID: " + sale.getSaleId());
+            System.out.println("Total: " + sale.getTotalAmount());
         }
     }
 }
