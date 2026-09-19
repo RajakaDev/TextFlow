@@ -88,12 +88,16 @@ public class SalesPanel extends JPanel {
         JButton confirmButton = new JButton("Confirm Sale");
         confirmButton.addActionListener(e -> confirmSale());
 
+        JButton cancelButton = new JButton("Cancel Sale");
+        cancelButton.addActionListener(e -> cancelSale());
+
         JButton receiptButton = new JButton("Receipt");
         receiptButton.addActionListener(e -> showReceipt());
 
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(calculateButton);
         buttonPanel.add(confirmButton);
+        buttonPanel.add(cancelButton);
         buttonPanel.add(receiptButton);
 
         add(title, BorderLayout.NORTH);
@@ -353,6 +357,47 @@ public class SalesPanel extends JPanel {
                 "TextFlow Receipt",
                 JOptionPane.INFORMATION_MESSAGE
         );
+    }
+
+    private void cancelSale() {
+
+        String saleIdText = JOptionPane.showInputDialog(
+                this,
+                "Enter Sale ID to cancel:"
+        );
+
+        if (saleIdText == null) {
+            return;
+        }
+
+        try {
+            int saleId = Integer.parseInt(saleIdText);
+
+            boolean cancelled = saleDAO.cancelSale(saleId);
+
+            if (cancelled) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Sale " + saleId + " cancelled successfully."
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Sale could not be cancelled.\n" +
+                                "Only PENDING sales can be cancelled.",
+                        "Cancel Sale",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please enter a valid Sale ID.",
+                    "Invalid Sale ID",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
 }

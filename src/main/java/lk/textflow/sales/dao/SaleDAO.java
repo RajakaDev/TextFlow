@@ -208,5 +208,22 @@ public class SaleDAO {
 
         return -1;
     }
+
+    public boolean cancelSale(int saleId) {
+        String sql = "UPDATE sales SET status = 'CANCELLED' " +
+                "WHERE sale_id = ? AND status = 'PENDING'";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, saleId);
+
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
 
