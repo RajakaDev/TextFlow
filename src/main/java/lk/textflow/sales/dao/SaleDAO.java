@@ -131,5 +131,52 @@ public class SaleDAO {
             return statement.executeUpdate() > 0;
         }
     }
+    public java.util.List<Sale> getAllSales() {
+
+        java.util.List<Sale> sales = new java.util.ArrayList<>();
+
+        String sql = "SELECT * FROM sales ORDER BY sale_date DESC";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+
+                Sale sale = new Sale();
+
+                sale.setSaleId(resultSet.getInt("sale_id"));
+
+                int customerId = resultSet.getInt("customer_id");
+                if (resultSet.wasNull()) {
+                    sale.setCustomerId(null);
+                } else {
+                    sale.setCustomerId(customerId);
+                }
+
+                sale.setUserId(resultSet.getInt("user_id"));
+
+                if (resultSet.getTimestamp("sale_date") != null) {
+                    sale.setSaleDate(
+                            resultSet.getTimestamp("sale_date").toLocalDateTime()
+                    );
+                }
+
+                sale.setTotalAmount(resultSet.getBigDecimal("total_amount"));
+                sale.setAmountGiven(resultSet.getBigDecimal("amount_given"));
+                sale.setBalance(resultSet.getBigDecimal("balance"));
+                sale.setPaymentMethod(resultSet.getString("payment_method"));
+                sale.setPaymentStatus(resultSet.getString("payment_status"));
+                sale.setStatus(resultSet.getString("status"));
+
+                sales.add(sale);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return sales;
+    }
 }
 
