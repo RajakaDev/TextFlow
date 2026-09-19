@@ -13,8 +13,7 @@ import lk.textflow.dao.ProductDAO;
 import lk.textflow.dao.InventoryAdjustmentDAO;
 import lk.textflow.model.InventoryAdjustment;
 import lk.textflow.model.Product;
-import lk.textflow.dao.InventoryAdjustmentDAO;
-import lk.textflow.model.InventoryAdjustment;
+
 
 
 
@@ -188,6 +187,7 @@ public class SalesPanel extends JPanel {
 
                 SaleItemDAO saleItemDAO = new SaleItemDAO();
                 saleItemDAO.addSaleItem(item);
+
 
             }
 

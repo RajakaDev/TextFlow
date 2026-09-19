@@ -1,6 +1,8 @@
 package lk.textflow.model;
 
 import java.time.LocalDateTime;
+import lk.textflow.dao.InventoryAdjustmentDAO;
+import lk.textflow.model.InventoryAdjustment;
 
 public class InventoryAdjustment {
 
