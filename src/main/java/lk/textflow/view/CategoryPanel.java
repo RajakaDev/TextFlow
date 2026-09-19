@@ -4,11 +4,59 @@ import lk.textflow.dao.CategoryDAO;
 import lk.textflow.model.Category;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.List;
 
 public class CategoryPanel extends JPanel {
+
+    // =========================================================
+    // TEXTFLOW COLORS
+    // =========================================================
+
+    private static final Color PAGE_BG =
+            new Color(245, 247, 250);
+
+    private static final Color CARD_BG =
+            Color.WHITE;
+
+    private static final Color PRIMARY =
+            new Color(37, 99, 235);
+
+    private static final Color PRIMARY_DARK =
+            new Color(30, 64, 175);
+
+    private static final Color SUCCESS =
+            new Color(22, 163, 74);
+
+    private static final Color DANGER =
+            new Color(220, 38, 38);
+
+    private static final Color SECONDARY =
+            new Color(100, 116, 139);
+
+    private static final Color TEXT_DARK =
+            new Color(30, 41, 59);
+
+    private static final Color TEXT_MUTED =
+            new Color(100, 116, 139);
+
+    private static final Color BORDER =
+            new Color(226, 232, 240);
+
+    private static final Color TABLE_HEADER =
+            new Color(30, 64, 175);
+
+    private static final Color ALTERNATE_ROW =
+            new Color(248, 250, 252);
+
+
+    // =========================================================
+    // COMPONENTS
+    // =========================================================
 
     private JTextField txtCategoryId;
     private JTextField txtCategoryName;
@@ -26,86 +74,304 @@ public class CategoryPanel extends JPanel {
 
     private final CategoryDAO categoryDAO;
 
+
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
+
     public CategoryPanel() {
 
         categoryDAO = new CategoryDAO();
 
-        setLayout(new BorderLayout(10, 10));
+        setLayout(
+                new BorderLayout()
+        );
+
+        setBackground(
+                PAGE_BG
+        );
 
         initializeUI();
 
         loadCategories();
     }
 
+
+    // =========================================================
+    // MAIN UI
+    // =========================================================
+
     private void initializeUI() {
 
-        JLabel titleLabel =
-                new JLabel("Category Management");
+        JPanel container =
+                new JPanel(
+                        new BorderLayout(
+                                0,
+                                20
+                        )
+                );
 
-        titleLabel.setFont(
-                new Font("Arial", Font.BOLD, 24)
+        container.setBackground(
+                PAGE_BG
         );
 
-        titleLabel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        10, 10, 10, 10
+        container.setBorder(
+                new EmptyBorder(
+                        25,
+                        30,
+                        30,
+                        30
                 )
         );
 
-        add(titleLabel, BorderLayout.NORTH);
 
-        JPanel mainPanel =
-                new JPanel(new BorderLayout(10, 10));
+        // =====================================================
+        // PAGE HEADER
+        // =====================================================
 
-        mainPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        10, 10, 10, 10
+        JPanel header =
+                new JPanel();
+
+        header.setLayout(
+                new BoxLayout(
+                        header,
+                        BoxLayout.Y_AXIS
                 )
         );
 
-        mainPanel.add(
+        header.setBackground(
+                PAGE_BG
+        );
+
+
+        JLabel title =
+                new JLabel(
+                        "Category Management"
+                );
+
+        title.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        28
+                )
+        );
+
+        title.setForeground(
+                TEXT_DARK
+        );
+
+        title.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        JLabel subtitle =
+                new JLabel(
+                        "Create and manage product categories"
+                );
+
+        subtitle.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+        subtitle.setForeground(
+                TEXT_MUTED
+        );
+
+        subtitle.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        header.add(title);
+
+        header.add(
+                Box.createVerticalStrut(5)
+        );
+
+        header.add(subtitle);
+
+
+        container.add(
+                header,
+                BorderLayout.NORTH
+        );
+
+
+        // =====================================================
+        // CONTENT
+        // =====================================================
+
+        JPanel content =
+                new JPanel(
+                        new BorderLayout(
+                                20,
+                                20
+                        )
+                );
+
+        content.setBackground(
+                PAGE_BG
+        );
+
+
+        content.add(
                 createFormPanel(),
                 BorderLayout.NORTH
         );
 
-        mainPanel.add(
+
+        content.add(
                 createTablePanel(),
                 BorderLayout.CENTER
         );
 
-        add(mainPanel, BorderLayout.CENTER);
+
+        container.add(
+                content,
+                BorderLayout.CENTER
+        );
+
+
+        add(
+                container,
+                BorderLayout.CENTER
+        );
     }
+
+
+    // =========================================================
+    // FORM CARD
+    // =========================================================
 
     private JPanel createFormPanel() {
 
-        JPanel formPanel =
-                new JPanel(new GridBagLayout());
+        JPanel card =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-        formPanel.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Category Details"
+        card.setBackground(
+                CARD_BG
+        );
+
+        card.setBorder(
+                BorderFactory.createCompoundBorder(
+
+                        BorderFactory.createLineBorder(
+                                BORDER
+                        ),
+
+                        new EmptyBorder(
+                                20,
+                                25,
+                                20,
+                                25
+                        )
                 )
         );
+
+
+        // =====================================================
+        // CARD TITLE
+        // =====================================================
+
+        JLabel sectionTitle =
+                new JLabel(
+                        "Category Details"
+                );
+
+        sectionTitle.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        sectionTitle.setForeground(
+                TEXT_DARK
+        );
+
+        sectionTitle.setBorder(
+                new EmptyBorder(
+                        0,
+                        0,
+                        15,
+                        0
+                )
+        );
+
+
+        card.add(
+                sectionTitle,
+                BorderLayout.NORTH
+        );
+
+
+        // =====================================================
+        // FORM
+        // =====================================================
+
+        JPanel form =
+                new JPanel(
+                        new GridBagLayout()
+                );
+
+        form.setBackground(
+                CARD_BG
+        );
+
 
         GridBagConstraints gbc =
                 new GridBagConstraints();
 
-        gbc.insets = new Insets(
-                5, 5, 5, 5
-        );
+        gbc.insets =
+                new Insets(
+                        7,
+                        7,
+                        7,
+                        7
+                );
 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill =
+                GridBagConstraints.HORIZONTAL;
+
+        gbc.weightx = 1;
+
+
+        // =====================================================
+        // COMPONENTS
+        // =====================================================
 
         txtCategoryId =
-                new JTextField(15);
+                createTextField();
 
-        txtCategoryId.setEditable(false);
+        txtCategoryId.setEditable(
+                false
+        );
+
+        txtCategoryId.setBackground(
+                new Color(
+                        241,
+                        245,
+                        249
+                )
+        );
+
 
         txtCategoryName =
-                new JTextField(20);
+                createTextField();
+
 
         txtDescription =
-                new JTextField(20);
+                createTextField();
+
 
         cmbStatus =
                 new JComboBox<>(
@@ -115,137 +381,349 @@ public class CategoryPanel extends JPanel {
                         }
                 );
 
+        cmbStatus.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+        cmbStatus.setPreferredSize(
+                new Dimension(
+                        300,
+                        38
+                )
+        );
+
+
+        // =====================================================
+        // ROW 1
+        // =====================================================
+
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.weightx = 0;
 
-        formPanel.add(
-                new JLabel("Category ID:"),
+        form.add(
+                createLabel(
+                        "Category ID"
+                ),
                 gbc
         );
 
-        gbc.gridx = 1;
 
-        formPanel.add(
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        form.add(
                 txtCategoryId,
                 gbc
         );
 
+
+        // =====================================================
+        // ROW 2
+        // =====================================================
+
         gbc.gridx = 0;
         gbc.gridy = 1;
+        gbc.weightx = 0;
 
-        formPanel.add(
-                new JLabel("Category Name:"),
+        form.add(
+                createLabel(
+                        "Category Name"
+                ),
                 gbc
         );
 
-        gbc.gridx = 1;
 
-        formPanel.add(
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        form.add(
                 txtCategoryName,
                 gbc
         );
 
+
+        // =====================================================
+        // ROW 3
+        // =====================================================
+
         gbc.gridx = 0;
         gbc.gridy = 2;
+        gbc.weightx = 0;
 
-        formPanel.add(
-                new JLabel("Description:"),
+        form.add(
+                createLabel(
+                        "Description"
+                ),
                 gbc
         );
 
-        gbc.gridx = 1;
 
-        formPanel.add(
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        form.add(
                 txtDescription,
                 gbc
         );
 
+
+        // =====================================================
+        // ROW 4
+        // =====================================================
+
         gbc.gridx = 0;
         gbc.gridy = 3;
+        gbc.weightx = 0;
 
-        formPanel.add(
-                new JLabel("Status:"),
+        form.add(
+                createLabel(
+                        "Status"
+                ),
                 gbc
         );
 
-        gbc.gridx = 1;
 
-        formPanel.add(
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        form.add(
                 cmbStatus,
                 gbc
         );
 
+
+        // =====================================================
+        // BUTTONS
+        // =====================================================
+
         JPanel buttonPanel =
                 new JPanel(
                         new FlowLayout(
-                                FlowLayout.LEFT
+                                FlowLayout.LEFT,
+                                10,
+                                10
                         )
                 );
 
+        buttonPanel.setBackground(
+                CARD_BG
+        );
+
+
         btnAdd =
-                new JButton("Add");
+                createButton(
+                        "Add Category",
+                        PRIMARY,
+                        Color.WHITE
+                );
+
 
         btnUpdate =
-                new JButton("Update");
+                createButton(
+                        "Update",
+                        SUCCESS,
+                        Color.WHITE
+                );
+
 
         btnDelete =
-                new JButton("Delete");
+                createButton(
+                        "Delete",
+                        DANGER,
+                        Color.WHITE
+                );
+
 
         btnClear =
-                new JButton("Clear");
+                createButton(
+                        "Clear",
+                        SECONDARY,
+                        Color.WHITE
+                );
 
-        buttonPanel.add(btnAdd);
-        buttonPanel.add(btnUpdate);
-        buttonPanel.add(btnDelete);
-        buttonPanel.add(btnClear);
+
+        buttonPanel.add(
+                btnAdd
+        );
+
+        buttonPanel.add(
+                btnUpdate
+        );
+
+        buttonPanel.add(
+                btnDelete
+        );
+
+        buttonPanel.add(
+                btnClear
+        );
+
 
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 2;
+        gbc.weightx = 1;
 
-        formPanel.add(
+
+        form.add(
                 buttonPanel,
                 gbc
         );
+
+
+        // =====================================================
+        // EVENTS
+        // =====================================================
 
         btnAdd.addActionListener(
                 e -> addCategory()
         );
 
+
         btnUpdate.addActionListener(
                 e -> updateCategory()
         );
+
 
         btnDelete.addActionListener(
                 e -> deleteCategory()
         );
 
+
         btnClear.addActionListener(
                 e -> clearForm()
         );
 
-        return formPanel;
+
+        card.add(
+                form,
+                BorderLayout.CENTER
+        );
+
+
+        return card;
     }
+
+
+    // =========================================================
+    // TABLE CARD
+    // =========================================================
 
     private JPanel createTablePanel() {
 
-        JPanel tablePanel =
+        JPanel card =
+                new JPanel(
+                        new BorderLayout(
+                                0,
+                                15
+                        )
+                );
+
+        card.setBackground(
+                CARD_BG
+        );
+
+        card.setBorder(
+                BorderFactory.createCompoundBorder(
+
+                        BorderFactory.createLineBorder(
+                                BORDER
+                        ),
+
+                        new EmptyBorder(
+                                20,
+                                20,
+                                20,
+                                20
+                        )
+                )
+        );
+
+
+        // =====================================================
+        // TABLE TITLE
+        // =====================================================
+
+        JPanel tableHeaderPanel =
                 new JPanel(
                         new BorderLayout()
                 );
 
-        tablePanel.setBorder(
-                BorderFactory.createTitledBorder(
+        tableHeaderPanel.setBackground(
+                CARD_BG
+        );
+
+
+        JLabel title =
+                new JLabel(
                         "Category List"
+                );
+
+        title.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        18
                 )
         );
 
+        title.setForeground(
+                TEXT_DARK
+        );
+
+
+        JLabel hint =
+                new JLabel(
+                        "Select a category to update or delete"
+                );
+
+        hint.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        13
+                )
+        );
+
+        hint.setForeground(
+                TEXT_MUTED
+        );
+
+
+        tableHeaderPanel.add(
+                title,
+                BorderLayout.WEST
+        );
+
+        tableHeaderPanel.add(
+                hint,
+                BorderLayout.EAST
+        );
+
+
+        card.add(
+                tableHeaderPanel,
+                BorderLayout.NORTH
+        );
+
+
+        // =====================================================
+        // TABLE MODEL
+        // =====================================================
+
         String[] columns = {
+
                 "ID",
                 "Category Name",
                 "Description",
                 "Status"
         };
+
 
         tableModel =
                 new DefaultTableModel(
@@ -262,16 +740,149 @@ public class CategoryPanel extends JPanel {
                     }
                 };
 
+
+        // =====================================================
+        // TABLE
+        // =====================================================
+
         categoryTable =
-                new JTable(tableModel);
+                new JTable(
+                        tableModel
+                );
+
+
+        categoryTable.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+
+        categoryTable.setRowHeight(
+                38
+        );
+
 
         categoryTable.setSelectionMode(
                 ListSelectionModel
                         .SINGLE_SELECTION
         );
 
-        categoryTable.getSelectionModel()
+
+        categoryTable.setShowVerticalLines(
+                false
+        );
+
+        categoryTable.setShowHorizontalLines(
+                true
+        );
+
+        categoryTable.setGridColor(
+                BORDER
+        );
+
+
+        categoryTable.setSelectionBackground(
+                new Color(
+                        219,
+                        234,
+                        254
+                )
+        );
+
+        categoryTable.setSelectionForeground(
+                TEXT_DARK
+        );
+
+
+        // =====================================================
+        // TABLE HEADER
+        // =====================================================
+
+        JTableHeader header =
+                categoryTable.getTableHeader();
+
+
+        header.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        14
+                )
+        );
+
+
+        header.setBackground(
+                TABLE_HEADER
+        );
+
+
+        header.setForeground(
+                Color.WHITE
+        );
+
+
+        header.setPreferredSize(
+                new Dimension(
+                        header.getPreferredSize().width,
+                        42
+                )
+        );
+
+
+        header.setReorderingAllowed(
+                false
+        );
+
+
+        // =====================================================
+        // CUSTOM ROW COLORS
+        // =====================================================
+
+        categoryTable.setDefaultRenderer(
+                Object.class,
+                new CategoryTableRenderer()
+        );
+
+
+        // =====================================================
+        // COLUMN WIDTHS
+        // =====================================================
+
+        categoryTable
+                .getColumnModel()
+                .getColumn(0)
+                .setPreferredWidth(60);
+
+
+        categoryTable
+                .getColumnModel()
+                .getColumn(1)
+                .setPreferredWidth(220);
+
+
+        categoryTable
+                .getColumnModel()
+                .getColumn(2)
+                .setPreferredWidth(400);
+
+
+        categoryTable
+                .getColumnModel()
+                .getColumn(3)
+                .setPreferredWidth(120);
+
+
+        // =====================================================
+        // SELECT ROW
+        // =====================================================
+
+        categoryTable
+                .getSelectionModel()
                 .addListSelectionListener(
+
                         e -> {
 
                             if (!e.getValueIsAdjusting()) {
@@ -281,36 +892,342 @@ public class CategoryPanel extends JPanel {
                         }
                 );
 
-        JScrollPane scrollPane =
-                new JScrollPane(categoryTable);
 
-        tablePanel.add(
+        JScrollPane scrollPane =
+                new JScrollPane(
+                        categoryTable
+                );
+
+
+        scrollPane.setBorder(
+                BorderFactory.createLineBorder(
+                        BORDER
+                )
+        );
+
+
+        scrollPane.getViewport()
+                .setBackground(
+                        Color.WHITE
+                );
+
+
+        card.add(
                 scrollPane,
                 BorderLayout.CENTER
         );
 
-        return tablePanel;
+
+        return card;
     }
+
+
+    // =========================================================
+    // CREATE TEXT FIELD
+    // =========================================================
+
+    private JTextField createTextField() {
+
+        JTextField field =
+                new JTextField();
+
+        field.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+
+        field.setPreferredSize(
+                new Dimension(
+                        300,
+                        38
+                )
+        );
+
+
+        field.setBorder(
+                BorderFactory.createCompoundBorder(
+
+                        BorderFactory.createLineBorder(
+                                BORDER
+                        ),
+
+                        new EmptyBorder(
+                                7,
+                                10,
+                                7,
+                                10
+                        )
+                )
+        );
+
+
+        return field;
+    }
+
+
+    // =========================================================
+    // CREATE LABEL
+    // =========================================================
+
+    private JLabel createLabel(
+            String text) {
+
+        JLabel label =
+                new JLabel(text);
+
+
+        label.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        14
+                )
+        );
+
+
+        label.setForeground(
+                TEXT_DARK
+        );
+
+
+        return label;
+    }
+
+
+    // =========================================================
+    // CREATE BUTTON
+    // =========================================================
+
+    private JButton createButton(
+            String text,
+            Color background,
+            Color foreground) {
+
+        JButton button =
+                new JButton(text);
+
+
+        button.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        13
+                )
+        );
+
+
+        button.setForeground(
+                foreground
+        );
+
+
+        button.setBackground(
+                background
+        );
+
+
+        button.setOpaque(
+                true
+        );
+
+
+        button.setBorderPainted(
+                false
+        );
+
+
+        button.setFocusPainted(
+                false
+        );
+
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+
+        button.setPreferredSize(
+                new Dimension(
+                        130,
+                        38
+                )
+        );
+
+
+        return button;
+    }
+
+
+    // =========================================================
+    // CUSTOM TABLE RENDERER
+    // =========================================================
+
+    private class CategoryTableRenderer
+            extends DefaultTableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table,
+                Object value,
+                boolean isSelected,
+                boolean hasFocus,
+                int row,
+                int column) {
+
+            Component component =
+                    super.getTableCellRendererComponent(
+                            table,
+                            value,
+                            isSelected,
+                            hasFocus,
+                            row,
+                            column
+                    );
+
+
+            setBorder(
+                    new EmptyBorder(
+                            0,
+                            10,
+                            0,
+                            10
+                    )
+            );
+
+
+            if (isSelected) {
+
+                component.setBackground(
+                        new Color(
+                                219,
+                                234,
+                                254
+                        )
+                );
+
+                component.setForeground(
+                        TEXT_DARK
+                );
+
+            } else {
+
+                if (row % 2 == 0) {
+
+                    component.setBackground(
+                            Color.WHITE
+                    );
+
+                } else {
+
+                    component.setBackground(
+                            ALTERNATE_ROW
+                    );
+                }
+
+
+                component.setForeground(
+                        TEXT_DARK
+                );
+            }
+
+
+            // Status column
+            if (column == 3
+                    && value != null) {
+
+                String status =
+                        value.toString();
+
+
+                if ("ACTIVE".equals(status)) {
+
+                    component.setForeground(
+                            SUCCESS
+                    );
+
+                    setFont(
+                            new Font(
+                                    "SansSerif",
+                                    Font.BOLD,
+                                    13
+                            )
+                    );
+
+                } else {
+
+                    component.setForeground(
+                            DANGER
+                    );
+
+                    setFont(
+                            new Font(
+                                    "SansSerif",
+                                    Font.BOLD,
+                                    13
+                            )
+                    );
+                }
+
+            } else {
+
+                setFont(
+                        new Font(
+                                "SansSerif",
+                                Font.PLAIN,
+                                14
+                        )
+                );
+            }
+
+
+            return component;
+        }
+    }
+
+
+    // =========================================================
+    // LOAD CATEGORIES
+    // =========================================================
 
     private void loadCategories() {
 
         tableModel.setRowCount(0);
 
-        List<Category> categories =
-                categoryDAO.getAllCategories();
 
-        for (Category category : categories) {
+        List<Category> categories =
+                categoryDAO
+                        .getAllCategories();
+
+
+        for (Category category :
+                categories) {
 
             tableModel.addRow(
+
                     new Object[]{
+
                             category.getCategoryId(),
+
                             category.getCategoryName(),
+
                             category.getDescription(),
+
                             category.getStatus()
                     }
             );
         }
     }
+
+
+    // =========================================================
+    // ADD CATEGORY
+    // =========================================================
 
     private void addCategory() {
 
@@ -319,15 +1236,18 @@ public class CategoryPanel extends JPanel {
                         .getText()
                         .trim();
 
+
         String description =
                 txtDescription
                         .getText()
                         .trim();
 
+
         String status =
                 cmbStatus
                         .getSelectedItem()
                         .toString();
+
 
         if (name.isEmpty()) {
 
@@ -338,8 +1258,11 @@ public class CategoryPanel extends JPanel {
                     JOptionPane.WARNING_MESSAGE
             );
 
+            txtCategoryName.requestFocus();
+
             return;
         }
+
 
         Category category =
                 new Category(
@@ -348,10 +1271,13 @@ public class CategoryPanel extends JPanel {
                         status
                 );
 
+
         boolean success =
-                categoryDAO.addCategory(
-                        category
-                );
+                categoryDAO
+                        .addCategory(
+                                category
+                        );
+
 
         if (success) {
 
@@ -360,24 +1286,36 @@ public class CategoryPanel extends JPanel {
                     "Category added successfully!"
             );
 
+
             clearForm();
+
             loadCategories();
 
         } else {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Failed to add category.",
-                    "Error",
+
+                    "Failed to add category.\n"
+                            + "The category name may already exist.",
+
+                    "Add Failed",
+
                     JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
+
+    // =========================================================
+    // UPDATE CATEGORY
+    // =========================================================
+
     private void updateCategory() {
 
         if (txtCategoryId
                 .getText()
+                .trim()
                 .isEmpty()) {
 
             JOptionPane.showMessageDialog(
@@ -388,10 +1326,12 @@ public class CategoryPanel extends JPanel {
             return;
         }
 
+
         String name =
                 txtCategoryName
                         .getText()
                         .trim();
+
 
         if (name.isEmpty()) {
 
@@ -403,20 +1343,25 @@ public class CategoryPanel extends JPanel {
             return;
         }
 
+
         int categoryId =
                 Integer.parseInt(
-                        txtCategoryId.getText()
+                        txtCategoryId
+                                .getText()
                 );
+
 
         String description =
                 txtDescription
                         .getText()
                         .trim();
 
+
         String status =
                 cmbStatus
                         .getSelectedItem()
                         .toString();
+
 
         Category category =
                 new Category(
@@ -426,10 +1371,13 @@ public class CategoryPanel extends JPanel {
                         status
                 );
 
+
         boolean success =
-                categoryDAO.updateCategory(
-                        category
-                );
+                categoryDAO
+                        .updateCategory(
+                                category
+                        );
+
 
         if (success) {
 
@@ -438,7 +1386,9 @@ public class CategoryPanel extends JPanel {
                     "Category updated successfully!"
             );
 
+
             clearForm();
+
             loadCategories();
 
         } else {
@@ -446,16 +1396,22 @@ public class CategoryPanel extends JPanel {
             JOptionPane.showMessageDialog(
                     this,
                     "Failed to update category.",
-                    "Error",
+                    "Update Failed",
                     JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
+
+    // =========================================================
+    // DELETE CATEGORY
+    // =========================================================
+
     private void deleteCategory() {
 
         if (txtCategoryId
                 .getText()
+                .trim()
                 .isEmpty()) {
 
             JOptionPane.showMessageDialog(
@@ -466,29 +1422,51 @@ public class CategoryPanel extends JPanel {
             return;
         }
 
+
+        String categoryName =
+                txtCategoryName
+                        .getText()
+                        .trim();
+
+
         int confirmation =
                 JOptionPane.showConfirmDialog(
                         this,
-                        "Are you sure you want to delete this category?",
+
+                        "Delete category \""
+                                + categoryName
+                                + "\"?\n\n"
+                                + "Categories used by products "
+                                + "cannot be deleted.",
+
                         "Confirm Delete",
-                        JOptionPane.YES_NO_OPTION
+
+                        JOptionPane.YES_NO_OPTION,
+
+                        JOptionPane.WARNING_MESSAGE
                 );
 
-        if (confirmation !=
-                JOptionPane.YES_OPTION) {
+
+        if (confirmation
+                != JOptionPane.YES_OPTION) {
 
             return;
         }
 
+
         int categoryId =
                 Integer.parseInt(
-                        txtCategoryId.getText()
+                        txtCategoryId
+                                .getText()
                 );
 
+
         boolean success =
-                categoryDAO.deleteCategory(
-                        categoryId
-                );
+                categoryDAO
+                        .deleteCategory(
+                                categoryId
+                        );
+
 
         if (success) {
 
@@ -497,20 +1475,31 @@ public class CategoryPanel extends JPanel {
                     "Category deleted successfully!"
             );
 
+
             clearForm();
+
             loadCategories();
 
         } else {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Category cannot be deleted. "
-                            + "It may be used by a product.",
+
+                    "This category cannot be deleted.\n"
+                            + "It may already be assigned to a product.\n\n"
+                            + "You can change its status to INACTIVE instead.",
+
                     "Delete Failed",
+
                     JOptionPane.ERROR_MESSAGE
             );
         }
     }
+
+
+    // =========================================================
+    // LOAD SELECTED CATEGORY
+    // =========================================================
 
     private void loadSelectedCategory() {
 
@@ -518,12 +1507,15 @@ public class CategoryPanel extends JPanel {
                 categoryTable
                         .getSelectedRow();
 
+
         if (selectedRow == -1) {
 
             return;
         }
 
+
         txtCategoryId.setText(
+
                 tableModel
                         .getValueAt(
                                 selectedRow,
@@ -532,7 +1524,9 @@ public class CategoryPanel extends JPanel {
                         .toString()
         );
 
+
         txtCategoryName.setText(
+
                 tableModel
                         .getValueAt(
                                 selectedRow,
@@ -541,19 +1535,25 @@ public class CategoryPanel extends JPanel {
                         .toString()
         );
 
+
         Object description =
-                tableModel.getValueAt(
-                        selectedRow,
-                        2
-                );
+                tableModel
+                        .getValueAt(
+                                selectedRow,
+                                2
+                        );
+
 
         txtDescription.setText(
+
                 description == null
                         ? ""
                         : description.toString()
         );
 
+
         cmbStatus.setSelectedItem(
+
                 tableModel
                         .getValueAt(
                                 selectedRow,
@@ -563,16 +1563,40 @@ public class CategoryPanel extends JPanel {
         );
     }
 
+
+    // =========================================================
+    // CLEAR FORM
+    // =========================================================
+
     private void clearForm() {
 
         txtCategoryId.setText("");
+
         txtCategoryName.setText("");
+
         txtDescription.setText("");
+
 
         cmbStatus.setSelectedItem(
                 "ACTIVE"
         );
 
+
         categoryTable.clearSelection();
+
+
+        txtCategoryName.requestFocus();
+    }
+
+
+    // =========================================================
+    // PUBLIC REFRESH
+    // =========================================================
+
+    public void refreshData() {
+
+        loadCategories();
+
+        clearForm();
     }
 }
