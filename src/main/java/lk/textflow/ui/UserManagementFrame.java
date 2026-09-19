@@ -325,21 +325,6 @@ public class UserManagementFrame extends JFrame {
                         )
                 );
 
-        JButton deactivateButton =
-                createButton(
-                        "Deactivate",
-                        new Color(
-                                254,
-                                226,
-                                226
-                        ),
-                        new Color(
-                                153,
-                                27,
-                                27
-                        )
-                );
-
         JButton attendanceButton =
                 createButton(
                         "Attendance",
@@ -398,7 +383,6 @@ public class UserManagementFrame extends JFrame {
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
-        buttonPanel.add(deactivateButton);
         buttonPanel.add(attendanceButton);
         buttonPanel.add(clearButton);
         buttonPanel.add(logoutButton);
@@ -641,7 +625,6 @@ public class UserManagementFrame extends JFrame {
 
         addButton.setEnabled(isOwner);
         updateButton.setEnabled(isOwner);
-        deactivateButton.setEnabled(isOwner);
 
         nameField.setEnabled(isOwner);
         usernameField.setEnabled(isOwner);
@@ -953,6 +936,7 @@ public class UserManagementFrame extends JFrame {
                 return;
             }
 
+            // Protect the system OWNER account
             if ("OWNER".equalsIgnoreCase(
                     originalRole
             )) {
@@ -961,6 +945,7 @@ public class UserManagementFrame extends JFrame {
                 status = "ACTIVE";
             }
 
+            // Do not promote another user to OWNER
             if (!"OWNER".equalsIgnoreCase(
                     originalRole
             )
@@ -1019,87 +1004,6 @@ public class UserManagementFrame extends JFrame {
 
                 message(
                         "User could not be updated."
-                );
-            }
-        });
-
-        // ==================================================
-        // DEACTIVATE
-        // ==================================================
-
-        deactivateButton.addActionListener(e -> {
-
-            int row =
-                    userTable
-                            .getSelectedRow();
-
-            if (row == -1) {
-
-                message(
-                        "Please select a user first."
-                );
-
-                return;
-            }
-
-            int userId =
-                    Integer.parseInt(
-                            value(
-                                    row,
-                                    0
-                            )
-                    );
-
-            String selectedRole =
-                    value(
-                            row,
-                            3
-                    );
-
-            if ("OWNER".equalsIgnoreCase(
-                    selectedRole
-            )) {
-
-                message(
-                        "The Owner account cannot be deactivated."
-                );
-
-                return;
-            }
-
-            int confirm =
-                    JOptionPane.showConfirmDialog(
-                            this,
-                            "Deactivate this user?",
-                            "Confirm Deactivation",
-                            JOptionPane.YES_NO_OPTION
-                    );
-
-            if (confirm
-                    != JOptionPane.YES_OPTION) {
-
-                return;
-            }
-
-            UserDAO userDAO =
-                    new UserDAO();
-
-            if (userDAO.deactivateUser(
-                    userId
-            )) {
-
-                message(
-                        "User deactivated successfully."
-                );
-
-                clearForm();
-
-                loadUsers();
-
-            } else {
-
-                message(
-                        "User could not be deactivated."
                 );
             }
         });
@@ -1314,6 +1218,10 @@ public class UserManagementFrame extends JFrame {
         return button;
     }
 
+    // ==================================================
+    // LOAD USERS
+    // ==================================================
+
     private void loadUsers() {
 
         UserDAO dao =
@@ -1348,6 +1256,10 @@ public class UserManagementFrame extends JFrame {
         }
     }
 
+    // ==================================================
+    // ADD USER TO TABLE
+    // ==================================================
+
     private void addUserToTable(
             User user
     ) {
@@ -1365,6 +1277,10 @@ public class UserManagementFrame extends JFrame {
         );
     }
 
+    // ==================================================
+    // READ TABLE VALUE
+    // ==================================================
+
     private String value(
             int row,
             int column
@@ -1381,6 +1297,10 @@ public class UserManagementFrame extends JFrame {
                 : value.toString();
     }
 
+    // ==================================================
+    // CLEAR FORM
+    // ==================================================
+
     private void clearForm() {
 
         nameField.setText("");
@@ -1395,6 +1315,10 @@ public class UserManagementFrame extends JFrame {
 
         userTable.clearSelection();
     }
+
+    // ==================================================
+    // MESSAGE
+    // ==================================================
 
     private void message(
             String text
