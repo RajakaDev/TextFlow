@@ -1,0 +1,225 @@
+package lk.textflow.dao;
+
+import lk.textflow.config.DatabaseConnection;
+import lk.textflow.model.User;
+import lk.textflow.util.PasswordUtil;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class UserDAO {
+
+    public boolean addUser(User user) {
+
+        String sql = """
+                INSERT INTO users
+                (name, username, password_hash, role, position, contact_number, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
+        try(
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getUsername());
+
+            String hashedPwd = PasswordUtil.hashPassword(user.getPasswordHash());
+
+            statement.setString(3, hashedPwd);
+
+            statement.setString(4, user.getRole());
+            statement.setString(5, user.getPosition());
+            statement.setString(6, user.getContactNumber());
+            statement.setString(7, user.getStatus());
+
+            int rowsAffected = statement.executeUpdate();
+
+            return rowsAffected > 0;
+
+          } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<User> getAllUsers() {
+
+        List<User> users = new ArrayList<>();
+
+        String sql = "SELECT * FROM users";
+
+        try(
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()
+        ) {
+
+            while(resultSet.next()) {
+
+                User user = new User();
+
+                user.setUserId(resultSet.getInt("user_id"));
+                user.setName(resultSet.getString("name"));
+                user.setUsername(resultSet.getString("username"));
+                user.setPasswordHash(resultSet.getString("password_hash"));
+                user.setRole(resultSet.getString("role"));
+                user.setPosition(resultSet.getString("position"));
+                user.setContactNumber(resultSet.getString("contact_number"));
+                user.setStatus(resultSet.getString("status"));
+
+                user.setCreatedAt(
+                        resultSet.getTimestamp("created_at").toLocalDateTime()
+                );
+                users.add(user);
+                }
+            }  catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public boolean updateUser(User user) {
+
+        String sql = """
+                UPDATE users
+                SET name = ?,
+                    username = ?,
+                    role = ?,
+                    position = ?,
+                    contact_number = ?,
+                    status = ?
+                WHERE user_id = ?
+        """;
+
+        try(
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+                ) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getUsername());
+            statement.setString(3, user.getRole());
+            statement.setString(4, user.getPosition());
+            statement.setString(5, user.getContactNumber());
+            statement.setString(6, user.getStatus());
+            statement.setInt(7,user.getUserId());
+
+            int rowsAffected = statement.executeUpdate();
+
+            return rowsAffected > 0;
+
+        }   catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+
+        }
+
+
+    }
+
+    public boolean deactivateUser(int userId) {
+
+        String sql = """
+            UPDATE users
+            SET status = 'INACTIVE'
+            WHERE user_id = ?
+            """;
+
+        try (
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setInt(1, userId);
+
+            int rowsAffected = statement.executeUpdate();
+
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public User findUserById(int userId) {
+
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+
+        try (
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setInt(1, userId);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                User user = new User();
+
+                user.setUserId(resultSet.getInt("user_id"));
+                user.setName(resultSet.getString("name"));
+                user.setUsername(resultSet.getString("username"));
+                user.setPasswordHash(resultSet.getString("password_hash"));
+                user.setRole(resultSet.getString("role"));
+                user.setPosition(resultSet.getString("position"));
+                user.setContactNumber(resultSet.getString("contact_number"));
+                user.setStatus(resultSet.getString("status"));
+                user.setCreatedAt(
+                        resultSet.getTimestamp("created_at").toLocalDateTime()
+                );
+
+                return user;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public User findUserByUsername(String username) {
+
+        String sql = "SELECT * FROM users WHERE username = ?";
+
+        try (
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, username);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                User user = new User();
+
+                user.setUserId(resultSet.getInt("user_id"));
+                user.setName(resultSet.getString("name"));
+                user.setUsername(resultSet.getString("username"));
+                user.setPasswordHash(resultSet.getString("password_hash"));
+                user.setRole(resultSet.getString("role"));
+                user.setPosition(resultSet.getString("position"));
+                user.setContactNumber(resultSet.getString("contact_number"));
+                user.setStatus(resultSet.getString("status"));
+                user.setCreatedAt(
+                        resultSet.getTimestamp("created_at").toLocalDateTime()
+                );
+
+                return user;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+}

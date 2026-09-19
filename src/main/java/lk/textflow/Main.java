@@ -1,34 +1,21 @@
 package lk.textflow;
 
-import lk.textflow.dao.InventoryAdjustmentDAO;
-import lk.textflow.model.InventoryAdjustment;
+import lk.textflow.ui.LoginFrame;
+import lk.textflow.util.DefaultOwnerSetup;
+
+import javax.swing.*;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        InventoryAdjustmentDAO dao =
-                new InventoryAdjustmentDAO();
+        DefaultOwnerSetup.ensureOwnerExists();
 
-        InventoryAdjustment adjustment =
-                new InventoryAdjustment(
-                        3,
-                        1,
-                        10,
-                        "Stock correction"
-                );
+        SwingUtilities.invokeLater(() -> {
 
-        boolean success =
-                dao.adjustStock(adjustment);
+            LoginFrame loginFrame = new LoginFrame();
+            loginFrame.setVisible(true);
 
-        if (success) {
-            System.out.println(
-                    "Stock adjusted successfully!"
-            );
-        } else {
-            System.out.println(
-                    "Stock adjustment failed!"
-            );
-        }
+        });
     }
 }
