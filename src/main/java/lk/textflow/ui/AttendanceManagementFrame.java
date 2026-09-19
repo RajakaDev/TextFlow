@@ -4,14 +4,14 @@ import lk.textflow.dao.AttendanceDAO;
 import lk.textflow.model.Attendance;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-public class AttendanceManagementFrame
-        extends JFrame {
+public class AttendanceManagementFrame extends JFrame {
 
     private JTextField userIdField;
     private JTextField dateField;
@@ -23,13 +23,16 @@ public class AttendanceManagementFrame
     private JTextField searchDateField;
 
     private JTable attendanceTable;
-
     private DefaultTableModel tableModel;
 
-    private int selectedUserId;
+    private final int selectedUserId;
+    private final boolean canManageAttendance;
 
-    private boolean canManageAttendance;
+    private final Color DARK_BLUE =
+            new Color(31, 60, 136);
 
+    private final Color LIGHT_BACKGROUND =
+            new Color(245, 247, 250);
 
     public AttendanceManagementFrame(
             int userId,
@@ -42,12 +45,14 @@ public class AttendanceManagementFrame
         this.canManageAttendance =
                 canManageAttendance;
 
-
         setTitle(
                 "TextFlow - Attendance Management"
         );
 
-        setSize(950, 600);
+        setSize(
+                1000,
+                650
+        );
 
         setDefaultCloseOperation(
                 JFrame.DISPOSE_ON_CLOSE
@@ -56,55 +61,169 @@ public class AttendanceManagementFrame
         setLocationRelativeTo(null);
 
         setLayout(
-                new BorderLayout(
-                        10,
-                        10
+                new BorderLayout()
+        );
+
+        // ==================================================
+        // HEADER
+        // ==================================================
+
+        JPanel header =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        header.setBackground(
+                DARK_BLUE
+        );
+
+        header.setBorder(
+                new EmptyBorder(
+                        15,
+                        25,
+                        15,
+                        25
                 )
         );
 
-
-        // =====================================
-        // TITLE
-        // =====================================
-
-        JLabel titleLabel =
+        JLabel title =
                 new JLabel(
-                        "Attendance Management",
-                        SwingConstants.CENTER
+                        "TEXTFLOW  |  Attendance Management"
                 );
 
-        titleLabel.setFont(
+        title.setForeground(
+                Color.WHITE
+        );
+
+        title.setFont(
                 new Font(
                         "Arial",
                         Font.BOLD,
-                        24
+                        23
                 )
         );
 
-
-        JLabel permissionLabel =
+        JLabel accessLabel =
                 new JLabel(
                         canManageAttendance
-                                ? "Attendance Management Access"
-                                : "Attendance View Only",
-                        SwingConstants.CENTER
+                                ? "Management Access"
+                                : "View Only"
                 );
 
+        accessLabel.setForeground(
+                Color.WHITE
+        );
 
-        // =====================================
-        // FORM
-        // =====================================
+        accessLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        13
+                )
+        );
 
-        JPanel formPanel =
+        header.add(
+                title,
+                BorderLayout.WEST
+        );
+
+        header.add(
+                accessLabel,
+                BorderLayout.EAST
+        );
+
+        add(
+                header,
+                BorderLayout.NORTH
+        );
+
+        // ==================================================
+        // MAIN
+        // ==================================================
+
+        JPanel mainPanel =
                 new JPanel(
-                        new GridLayout(
-                                5,
-                                2,
+                        new BorderLayout(
+                                15,
+                                15
+                        )
+                );
+
+        mainPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+        mainPanel.setBorder(
+                new EmptyBorder(
+                        15,
+                        20,
+                        15,
+                        20
+                )
+        );
+
+        // ==================================================
+        // FORM CARD
+        // ==================================================
+
+        JPanel formCard =
+                new JPanel(
+                        new BorderLayout(
                                 10,
                                 10
                         )
                 );
 
+        formCard.setBackground(
+                Color.WHITE
+        );
+
+        formCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                new Color(
+                                        220,
+                                        225,
+                                        230
+                                )
+                        ),
+                        new EmptyBorder(
+                                15,
+                                20,
+                                15,
+                                20
+                        )
+                )
+        );
+
+        JLabel formTitle =
+                new JLabel(
+                        "Attendance Details"
+                );
+
+        formTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        formTitle.setForeground(
+                DARK_BLUE
+        );
+
+        JPanel formPanel =
+                new JPanel(
+                        new GridLayout(
+                                3,
+                                4,
+                                12,
+                                12
+                        )
+                );
+
+        formPanel.setOpaque(false);
 
         userIdField =
                 new JTextField(
@@ -115,7 +234,6 @@ public class AttendanceManagementFrame
 
         userIdField.setEditable(false);
 
-
         dateField =
                 new JTextField();
 
@@ -124,7 +242,6 @@ public class AttendanceManagementFrame
 
         timeOutField =
                 new JTextField();
-
 
         statusComboBox =
                 new JComboBox<>(
@@ -135,13 +252,13 @@ public class AttendanceManagementFrame
                         }
                 );
 
-
         formPanel.add(
-                new JLabel("User ID:")
+                new JLabel(
+                        "User ID:"
+                )
         );
 
         formPanel.add(userIdField);
-
 
         formPanel.add(
                 new JLabel(
@@ -151,7 +268,6 @@ public class AttendanceManagementFrame
 
         formPanel.add(dateField);
 
-
         formPanel.add(
                 new JLabel(
                         "Time In (HH:MM):"
@@ -159,7 +275,6 @@ public class AttendanceManagementFrame
         );
 
         formPanel.add(timeInField);
-
 
         formPanel.add(
                 new JLabel(
@@ -169,113 +284,234 @@ public class AttendanceManagementFrame
 
         formPanel.add(timeOutField);
 
-
         formPanel.add(
-                new JLabel("Status:")
+                new JLabel(
+                        "Status:"
+                )
         );
 
         formPanel.add(statusComboBox);
 
+        formPanel.add(
+                new JLabel("")
+        );
 
-        // =====================================
-        // BUTTONS
-        // =====================================
+        formPanel.add(
+                new JLabel("")
+        );
+
+        // ==================================================
+        // LIGHT BUTTONS
+        // ==================================================
 
         JButton addButton =
-                new JButton(
-                        "Add Attendance"
+                createButton(
+                        "Add",
+                        new Color(
+                                220,
+                                245,
+                                228
+                        ),
+                        new Color(
+                                34,
+                                100,
+                                58
+                        )
                 );
 
         JButton updateButton =
-                new JButton(
-                        "Update Attendance"
+                createButton(
+                        "Update",
+                        new Color(
+                                219,
+                                234,
+                                254
+                        ),
+                        new Color(
+                                30,
+                                64,
+                                175
+                        )
                 );
 
         JButton deleteButton =
-                new JButton(
-                        "Delete Attendance"
+                createButton(
+                        "Delete",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                153,
+                                27,
+                                27
+                        )
                 );
 
         JButton clearButton =
-                new JButton("Clear");
-
-        JButton refreshButton =
-                new JButton("Refresh");
+                createButton(
+                        "Clear",
+                        new Color(
+                                243,
+                                244,
+                                246
+                        ),
+                        new Color(
+                                55,
+                                65,
+                                81
+                        )
+                );
 
         JButton closeButton =
-                new JButton("Close");
-
+                createButton(
+                        "Close",
+                        new Color(
+                                229,
+                                231,
+                                235
+                        ),
+                        new Color(
+                                31,
+                                41,
+                                55
+                        )
+                );
 
         JPanel buttonPanel =
-                new JPanel();
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                10,
+                                5
+                        )
+                );
 
+        buttonPanel.setOpaque(false);
 
         buttonPanel.add(addButton);
-
         buttonPanel.add(updateButton);
-
         buttonPanel.add(deleteButton);
-
         buttonPanel.add(clearButton);
-
-        buttonPanel.add(refreshButton);
-
         buttonPanel.add(closeButton);
 
-
-        // Owner/Manager may change attendance.
-        // Employee is view-only.
-        addButton.setEnabled(
-                canManageAttendance
+        formCard.add(
+                formTitle,
+                BorderLayout.NORTH
         );
 
-        updateButton.setEnabled(
-                canManageAttendance
+        formCard.add(
+                formPanel,
+                BorderLayout.CENTER
         );
 
-        deleteButton.setEnabled(
-                canManageAttendance
+        formCard.add(
+                buttonPanel,
+                BorderLayout.SOUTH
         );
 
-
-        dateField.setEditable(
-                canManageAttendance
+        mainPanel.add(
+                formCard,
+                BorderLayout.NORTH
         );
 
-        timeInField.setEditable(
-                canManageAttendance
+        // ==================================================
+        // TABLE CARD
+        // ==================================================
+
+        JPanel tableCard =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        tableCard.setBackground(
+                Color.WHITE
         );
 
-        timeOutField.setEditable(
-                canManageAttendance
+        tableCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                new Color(
+                                        220,
+                                        225,
+                                        230
+                                )
+                        ),
+                        new EmptyBorder(
+                                15,
+                                15,
+                                15,
+                                15
+                        )
+                )
         );
 
-        statusComboBox.setEnabled(
-                canManageAttendance
+        JLabel recordTitle =
+                new JLabel(
+                        "Attendance Records"
+                );
+
+        recordTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        18
+                )
         );
 
-
-        // =====================================
-        // SEARCH
-        // =====================================
+        recordTitle.setForeground(
+                DARK_BLUE
+        );
 
         searchDateField =
                 new JTextField(12);
 
-
         JButton searchButton =
-                new JButton(
-                        "Search Date"
+                createButton(
+                        "Search",
+                        new Color(
+                                254,
+                                243,
+                                199
+                        ),
+                        new Color(
+                                146,
+                                64,
+                                14
+                        )
                 );
 
+        JButton refreshButton =
+                createButton(
+                        "Refresh",
+                        new Color(
+                                204,
+                                251,
+                                241
+                        ),
+                        new Color(
+                                17,
+                                94,
+                                89
+                        )
+                );
 
         JPanel searchPanel =
-                new JPanel();
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.RIGHT
+                        )
+                );
 
+        searchPanel.setOpaque(false);
 
         searchPanel.add(
                 new JLabel(
-                        "Search Date (YYYY-MM-DD):"
+                        "Search Date:"
                 )
         );
 
@@ -287,81 +523,35 @@ public class AttendanceManagementFrame
                 searchButton
         );
 
-
-        // =====================================
-        // TOP PANEL
-        // =====================================
-
-        JPanel topPanel =
-                new JPanel();
-
-
-        topPanel.setLayout(
-                new BoxLayout(
-                        topPanel,
-                        BoxLayout.Y_AXIS
-                )
+        searchPanel.add(
+                refreshButton
         );
 
+        JPanel tableTop =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-        topPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        15,
-                        20,
-                        10,
-                        20
-                )
+        tableTop.setOpaque(false);
+
+        tableTop.add(
+                recordTitle,
+                BorderLayout.WEST
         );
 
-
-        topPanel.add(titleLabel);
-
-        topPanel.add(
-                Box.createVerticalStrut(5)
+        tableTop.add(
+                searchPanel,
+                BorderLayout.EAST
         );
-
-        topPanel.add(permissionLabel);
-
-        topPanel.add(
-                Box.createVerticalStrut(15)
-        );
-
-        topPanel.add(formPanel);
-
-        topPanel.add(
-                Box.createVerticalStrut(10)
-        );
-
-        topPanel.add(buttonPanel);
-
-        topPanel.add(
-                Box.createVerticalStrut(10)
-        );
-
-        topPanel.add(searchPanel);
-
-
-        add(
-                topPanel,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================
-        // TABLE
-        // =====================================
 
         String[] columns = {
-
                 "Attendance ID",
                 "User ID",
                 "Date",
                 "Time In",
                 "Time Out",
                 "Status"
-
         };
-
 
         tableModel =
                 new DefaultTableModel(
@@ -379,34 +569,100 @@ public class AttendanceManagementFrame
                     }
                 };
 
-
         attendanceTable =
                 new JTable(
                         tableModel
                 );
 
+        attendanceTable.setRowHeight(28);
 
         attendanceTable.setSelectionMode(
                 ListSelectionModel
                         .SINGLE_SELECTION
         );
 
+        attendanceTable
+                .getTableHeader()
+                .setBackground(
+                        DARK_BLUE
+                );
+
+        attendanceTable
+                .getTableHeader()
+                .setForeground(
+                        Color.WHITE
+                );
+
+        attendanceTable
+                .getTableHeader()
+                .setFont(
+                        new Font(
+                                "Arial",
+                                Font.BOLD,
+                                13
+                        )
+                );
 
         JScrollPane scrollPane =
                 new JScrollPane(
                         attendanceTable
                 );
 
+        tableCard.add(
+                tableTop,
+                BorderLayout.NORTH
+        );
 
-        add(
+        tableCard.add(
                 scrollPane,
                 BorderLayout.CENTER
         );
 
+        mainPanel.add(
+                tableCard,
+                BorderLayout.CENTER
+        );
 
-        // =====================================
-        // TABLE ROW CLICK
-        // =====================================
+        add(
+                mainPanel,
+                BorderLayout.CENTER
+        );
+
+        // ==================================================
+        // PERMISSIONS
+        // ==================================================
+
+        addButton.setEnabled(
+                canManageAttendance
+        );
+
+        updateButton.setEnabled(
+                canManageAttendance
+        );
+
+        deleteButton.setEnabled(
+                canManageAttendance
+        );
+
+        dateField.setEditable(
+                canManageAttendance
+        );
+
+        timeInField.setEditable(
+                canManageAttendance
+        );
+
+        timeOutField.setEditable(
+                canManageAttendance
+        );
+
+        statusComboBox.setEnabled(
+                canManageAttendance
+        );
+
+        // ==================================================
+        // TABLE CLICK
+        // ==================================================
 
         attendanceTable
                 .getSelectionModel()
@@ -419,7 +675,6 @@ public class AttendanceManagementFrame
                                         attendanceTable
                                                 .getSelectedRow();
 
-
                                 if (row != -1) {
 
                                     dateField.setText(
@@ -429,14 +684,12 @@ public class AttendanceManagementFrame
                                             )
                                     );
 
-
                                     timeInField.setText(
                                             value(
                                                     row,
                                                     3
                                             )
                                     );
-
 
                                     timeOutField.setText(
                                             value(
@@ -445,56 +698,37 @@ public class AttendanceManagementFrame
                                             )
                                     );
 
-
-                                    statusComboBox
-                                            .setSelectedItem(
-                                                    value(
-                                                            row,
-                                                            5
-                                                    )
-                                            );
+                                    statusComboBox.setSelectedItem(
+                                            value(
+                                                    row,
+                                                    5
+                                            )
+                                    );
                                 }
                             }
                         }
                 );
 
-
-        // =====================================
-        // ADD ATTENDANCE
-        // =====================================
+        // ==================================================
+        // ADD
+        // ==================================================
 
         addButton.addActionListener(e -> {
 
-            if (!canManageAttendance) {
-
-                showMessage(
-                        "You do not have permission to add attendance."
-                );
-
-                return;
-            }
-
-
             Attendance attendance =
-                    buildAttendanceFromForm();
-
+                    buildAttendance();
 
             if (attendance == null) {
                 return;
             }
 
-
             AttendanceDAO dao =
                     new AttendanceDAO();
 
-
-            List<Attendance> records =
+            List<Attendance> list =
                     dao.getAllAttendance();
 
-
-            // Prevent same user + same date twice
-            for (Attendance existing
-                    : records) {
+            for (Attendance existing : list) {
 
                 if (existing.getUserId()
                         == selectedUserId
@@ -506,24 +740,19 @@ public class AttendanceManagementFrame
                                         .getAttendanceDate()
                         )) {
 
-                    showMessage(
-                            "Attendance already exists for this user on this date."
+                    message(
+                            "Attendance already exists for this date."
                     );
 
                     return;
                 }
             }
 
+            if (dao.addAttendance(
+                    attendance
+            )) {
 
-            boolean added =
-                    dao.addAttendance(
-                            attendance
-                    );
-
-
-            if (added) {
-
-                showMessage(
+                message(
                         "Attendance added successfully!"
                 );
 
@@ -533,80 +762,55 @@ public class AttendanceManagementFrame
 
             } else {
 
-                showMessage(
+                message(
                         "Attendance could not be added."
                 );
             }
         });
 
-
-        // =====================================
-        // UPDATE ATTENDANCE
-        // =====================================
+        // ==================================================
+        // UPDATE
+        // ==================================================
 
         updateButton.addActionListener(e -> {
-
-            if (!canManageAttendance) {
-
-                showMessage(
-                        "You do not have permission to update attendance."
-                );
-
-                return;
-            }
-
 
             int row =
                     attendanceTable
                             .getSelectedRow();
 
-
             if (row == -1) {
 
-                showMessage(
-                        "Please select an attendance record first."
+                message(
+                        "Select an attendance record first."
                 );
 
                 return;
             }
 
-
             Attendance attendance =
-                    buildAttendanceFromForm();
-
+                    buildAttendance();
 
             if (attendance == null) {
                 return;
             }
 
-
-            int attendanceId =
+            attendance.setAttendanceId(
                     Integer.parseInt(
                             value(
                                     row,
                                     0
                             )
-                    );
-
-
-            attendance.setAttendanceId(
-                    attendanceId
+                    )
             );
-
 
             AttendanceDAO dao =
                     new AttendanceDAO();
 
+            if (dao.updateAttendance(
+                    attendance
+            )) {
 
-            boolean updated =
-                    dao.updateAttendance(
-                            attendance
-                    );
-
-
-            if (updated) {
-
-                showMessage(
+                message(
                         "Attendance updated successfully!"
                 );
 
@@ -616,61 +820,38 @@ public class AttendanceManagementFrame
 
             } else {
 
-                showMessage(
+                message(
                         "Attendance could not be updated."
                 );
             }
         });
 
-
-        // =====================================
-        // DELETE ATTENDANCE
-        // =====================================
+        // ==================================================
+        // DELETE
+        // ==================================================
 
         deleteButton.addActionListener(e -> {
-
-            if (!canManageAttendance) {
-
-                showMessage(
-                        "You do not have permission to delete attendance."
-                );
-
-                return;
-            }
-
 
             int row =
                     attendanceTable
                             .getSelectedRow();
 
-
             if (row == -1) {
 
-                showMessage(
-                        "Please select an attendance record first."
+                message(
+                        "Select an attendance record first."
                 );
 
                 return;
             }
 
-
-            int attendanceId =
-                    Integer.parseInt(
-                            value(
-                                    row,
-                                    0
-                            )
-                    );
-
-
             int confirm =
                     JOptionPane.showConfirmDialog(
                             this,
-                            "Are you sure you want to delete this attendance record?",
+                            "Delete this attendance record?",
                             "Confirm Delete",
                             JOptionPane.YES_NO_OPTION
                     );
-
 
             if (confirm
                     != JOptionPane.YES_OPTION) {
@@ -678,21 +859,23 @@ public class AttendanceManagementFrame
                 return;
             }
 
+            int id =
+                    Integer.parseInt(
+                            value(
+                                    row,
+                                    0
+                            )
+                    );
 
             AttendanceDAO dao =
                     new AttendanceDAO();
 
+            if (dao.deleteAttendance(
+                    id
+            )) {
 
-            boolean deleted =
-                    dao.deleteAttendance(
-                            attendanceId
-                    );
-
-
-            if (deleted) {
-
-                showMessage(
-                        "Attendance deleted successfully!"
+                message(
+                        "Attendance deleted."
                 );
 
                 clearForm();
@@ -701,16 +884,15 @@ public class AttendanceManagementFrame
 
             } else {
 
-                showMessage(
+                message(
                         "Attendance could not be deleted."
                 );
             }
         });
 
-
-        // =====================================
+        // ==================================================
         // SEARCH
-        // =====================================
+        // ==================================================
 
         searchButton.addActionListener(e -> {
 
@@ -719,7 +901,6 @@ public class AttendanceManagementFrame
                             .getText()
                             .trim();
 
-
             if (text.isEmpty()) {
 
                 loadAttendance();
@@ -727,41 +908,21 @@ public class AttendanceManagementFrame
                 return;
             }
 
-
             try {
 
-                LocalDate date =
+                loadAttendanceByDate(
                         LocalDate.parse(
                                 text
-                        );
-
-
-                loadAttendanceByDate(
-                        date
+                        )
                 );
-
 
             } catch (Exception ex) {
 
-                showMessage(
+                message(
                         "Enter date as YYYY-MM-DD."
                 );
             }
         });
-
-
-        // =====================================
-        // CLEAR
-        // =====================================
-
-        clearButton.addActionListener(
-                e -> clearForm()
-        );
-
-
-        // =====================================
-        // REFRESH
-        // =====================================
 
         refreshButton.addActionListener(e -> {
 
@@ -772,52 +933,105 @@ public class AttendanceManagementFrame
             loadAttendance();
         });
 
-
-        // =====================================
-        // CLOSE
-        // =====================================
+        clearButton.addActionListener(
+                e -> clearForm()
+        );
 
         closeButton.addActionListener(
                 e -> dispose()
         );
 
-
         loadAttendance();
     }
 
+    // ==================================================
+    // BUTTON STYLE
+    // ==================================================
 
-    // =====================================
-    // BUILD ATTENDANCE OBJECT
-    // =====================================
+    private JButton createButton(
+            String text,
+            Color backgroundColor,
+            Color textColor
+    ) {
 
-    private Attendance
-    buildAttendanceFromForm() {
+        JButton button =
+                new JButton(text);
+
+        button.setBackground(
+                backgroundColor
+        );
+
+        button.setForeground(
+                textColor
+        );
+
+        button.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        button.setFocusPainted(false);
+
+        button.setOpaque(true);
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        button.setPreferredSize(
+                new Dimension(
+                        110,
+                        36
+                )
+        );
+
+        button.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                backgroundColor.darker()
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                7,
+                                14,
+                                7,
+                                14
+                        )
+                )
+        );
+
+        return button;
+    }
+
+    private Attendance buildAttendance() {
 
         String dateText =
                 dateField
                         .getText()
                         .trim();
 
-        String timeInText =
+        String inText =
                 timeInField
                         .getText()
                         .trim();
 
-        String timeOutText =
+        String outText =
                 timeOutField
                         .getText()
                         .trim();
 
-
         if (dateText.isEmpty()) {
 
-            showMessage(
+            message(
                     "Date is required."
             );
 
             return null;
         }
-
 
         try {
 
@@ -826,29 +1040,19 @@ public class AttendanceManagementFrame
                             dateText
                     );
 
+            LocalTime timeIn =
+                    inText.isEmpty()
+                            ? null
+                            : LocalTime.parse(
+                            inText
+                    );
 
-            LocalTime timeIn = null;
-
-            LocalTime timeOut = null;
-
-
-            if (!timeInText.isEmpty()) {
-
-                timeIn =
-                        LocalTime.parse(
-                                timeInText
-                        );
-            }
-
-
-            if (!timeOutText.isEmpty()) {
-
-                timeOut =
-                        LocalTime.parse(
-                                timeOutText
-                        );
-            }
-
+            LocalTime timeOut =
+                    outText.isEmpty()
+                            ? null
+                            : LocalTime.parse(
+                            outText
+                    );
 
             if (timeIn != null
                     && timeOut != null
@@ -856,35 +1060,28 @@ public class AttendanceManagementFrame
                     timeIn
             )) {
 
-                showMessage(
+                message(
                         "Time Out cannot be before Time In."
                 );
 
                 return null;
             }
 
-
             String status =
                     statusComboBox
                             .getSelectedItem()
                             .toString();
 
-
-            // ABSENT means no working times
-            if ("ABSENT"
-                    .equalsIgnoreCase(
-                            status
-                    )) {
+            if ("ABSENT".equalsIgnoreCase(
+                    status
+            )) {
 
                 timeIn = null;
-
                 timeOut = null;
             }
 
-
             Attendance attendance =
                     new Attendance();
-
 
             attendance.setUserId(
                     selectedUserId
@@ -906,14 +1103,12 @@ public class AttendanceManagementFrame
                     status
             );
 
-
             return attendance;
-
 
         } catch (Exception ex) {
 
-            showMessage(
-                    "Invalid values.\n"
+            message(
+                    "Invalid input.\n"
                             + "Date: YYYY-MM-DD\n"
                             + "Time: HH:MM"
             );
@@ -922,23 +1117,15 @@ public class AttendanceManagementFrame
         }
     }
 
-
-    // =====================================
-    // LOAD SELECTED USER ATTENDANCE
-    // =====================================
-
     private void loadAttendance() {
 
         AttendanceDAO dao =
                 new AttendanceDAO();
 
-
         List<Attendance> list =
                 dao.getAllAttendance();
 
-
         tableModel.setRowCount(0);
-
 
         for (Attendance attendance
                 : list) {
@@ -946,17 +1133,12 @@ public class AttendanceManagementFrame
             if (attendance.getUserId()
                     == selectedUserId) {
 
-                addAttendanceToTable(
+                addAttendanceRow(
                         attendance
                 );
             }
         }
     }
-
-
-    // =====================================
-    // SEARCH BY DATE
-    // =====================================
 
     private void loadAttendanceByDate(
             LocalDate date
@@ -965,13 +1147,10 @@ public class AttendanceManagementFrame
         AttendanceDAO dao =
                 new AttendanceDAO();
 
-
         List<Attendance> list =
                 dao.getAllAttendance();
 
-
         tableModel.setRowCount(0);
-
 
         for (Attendance attendance
                 : list) {
@@ -983,38 +1162,39 @@ public class AttendanceManagementFrame
                     .getAttendanceDate()
                     .equals(date)) {
 
-                addAttendanceToTable(
+                addAttendanceRow(
                         attendance
                 );
             }
         }
     }
 
-
-    private void addAttendanceToTable(
+    private void addAttendanceRow(
             Attendance attendance
     ) {
 
-        Object[] row = {
+        tableModel.addRow(
+                new Object[]{
+                        attendance
+                                .getAttendanceId(),
 
-                attendance.getAttendanceId(),
+                        attendance
+                                .getUserId(),
 
-                attendance.getUserId(),
+                        attendance
+                                .getAttendanceDate(),
 
-                attendance.getAttendanceDate(),
+                        attendance
+                                .getTimeIn(),
 
-                attendance.getTimeIn(),
+                        attendance
+                                .getTimeOut(),
 
-                attendance.getTimeOut(),
-
-                attendance.getStatus()
-
-        };
-
-
-        tableModel.addRow(row);
+                        attendance
+                                .getStatus()
+                }
+        );
     }
-
 
     private String value(
             int row,
@@ -1027,12 +1207,10 @@ public class AttendanceManagementFrame
                         column
                 );
 
-
         return value == null
                 ? ""
                 : value.toString();
     }
-
 
     private void clearForm() {
 
@@ -1043,9 +1221,7 @@ public class AttendanceManagementFrame
         );
 
         dateField.setText("");
-
         timeInField.setText("");
-
         timeOutField.setText("");
 
         statusComboBox.setSelectedIndex(0);
@@ -1053,14 +1229,13 @@ public class AttendanceManagementFrame
         attendanceTable.clearSelection();
     }
 
-
-    private void showMessage(
-            String message
+    private void message(
+            String text
     ) {
 
         JOptionPane.showMessageDialog(
                 this,
-                message
+                text
         );
     }
 }

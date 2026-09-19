@@ -4,6 +4,7 @@ import lk.textflow.model.User;
 import lk.textflow.service.AuthenticationService;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class LoginFrame extends JFrame {
@@ -11,7 +12,14 @@ public class LoginFrame extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
 
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
+
+    // COLORS
+    private final Color DARK_BLUE = new Color(31, 60, 136);
+    private final Color TEAL = new Color(22, 160, 133);
+    private final Color LIGHT_BACKGROUND = new Color(245, 247, 250);
+    private final Color ORANGE = new Color(243, 156, 18);
+    private final Color WHITE = Color.WHITE;
 
     public LoginFrame() {
 
@@ -19,46 +27,173 @@ public class LoginFrame extends JFrame {
                 new AuthenticationService();
 
         setTitle("TextFlow - Login");
-        setSize(420, 300);
+        setSize(480, 420);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        JPanel mainPanel = new JPanel();
+        setLayout(new BorderLayout());
 
-        mainPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        25,
-                        35,
-                        25,
-                        35
-                )
+        // ===============================
+        // HEADER
+        // ===============================
+
+        JPanel headerPanel = new JPanel();
+
+        headerPanel.setBackground(DARK_BLUE);
+
+        headerPanel.setPreferredSize(
+                new Dimension(480, 100)
         );
 
-        mainPanel.setLayout(
+        headerPanel.setLayout(
                 new BoxLayout(
-                        mainPanel,
+                        headerPanel,
                         BoxLayout.Y_AXIS
                 )
         );
 
         JLabel titleLabel =
-                new JLabel(
-                        "TextFlow Login",
-                        SwingConstants.CENTER
-                );
+                new JLabel("TEXTFLOW");
+
+        titleLabel.setForeground(WHITE);
 
         titleLabel.setFont(
                 new Font(
                         "Arial",
                         Font.BOLD,
-                        24
+                        28
                 )
         );
 
         titleLabel.setAlignmentX(
                 Component.CENTER_ALIGNMENT
         );
+
+        JLabel subtitleLabel =
+                new JLabel(
+                        "Textile Shop Management System"
+                );
+
+        subtitleLabel.setForeground(
+                new Color(
+                        220,
+                        230,
+                        245
+                )
+        );
+
+        subtitleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+        subtitleLabel.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        headerPanel.add(
+                Box.createVerticalStrut(20)
+        );
+
+        headerPanel.add(titleLabel);
+
+        headerPanel.add(
+                Box.createVerticalStrut(5)
+        );
+
+        headerPanel.add(subtitleLabel);
+
+        add(
+                headerPanel,
+                BorderLayout.NORTH
+        );
+
+
+        // ===============================
+        // MAIN BACKGROUND
+        // ===============================
+
+        JPanel backgroundPanel =
+                new JPanel(
+                        new GridBagLayout()
+                );
+
+        backgroundPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+
+        // ===============================
+        // LOGIN CARD
+        // ===============================
+
+        JPanel loginCard =
+                new JPanel();
+
+        loginCard.setBackground(
+                WHITE
+        );
+
+        loginCard.setBorder(
+                BorderFactory
+                        .createCompoundBorder(
+                                BorderFactory
+                                        .createLineBorder(
+                                                new Color(
+                                                        220,
+                                                        225,
+                                                        230
+                                                )
+                                        ),
+                                new EmptyBorder(
+                                        25,
+                                        35,
+                                        25,
+                                        35
+                                )
+                        )
+        );
+
+        loginCard.setLayout(
+                new BoxLayout(
+                        loginCard,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        loginCard.setPreferredSize(
+                new Dimension(
+                        360,
+                        230
+                )
+        );
+
+
+        JLabel loginTitle =
+                new JLabel(
+                        "Login"
+                );
+
+        loginTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        22
+                )
+        );
+
+        loginTitle.setForeground(
+                DARK_BLUE
+        );
+
+        loginTitle.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
 
         JPanel formPanel =
                 new JPanel(
@@ -70,107 +205,207 @@ public class LoginFrame extends JFrame {
                         )
                 );
 
+        formPanel.setOpaque(false);
+
+
+        JLabel usernameLabel =
+                new JLabel(
+                        "Username:"
+                );
+
         usernameField =
                 new JTextField();
+
+
+        JLabel passwordLabel =
+                new JLabel(
+                        "Password:"
+                );
 
         passwordField =
                 new JPasswordField();
 
-        formPanel.add(
-                new JLabel("Username:")
-        );
-
-        formPanel.add(usernameField);
 
         formPanel.add(
-                new JLabel("Password:")
+                usernameLabel
         );
 
-        formPanel.add(passwordField);
+        formPanel.add(
+                usernameField
+        );
+
+        formPanel.add(
+                passwordLabel
+        );
+
+        formPanel.add(
+                passwordField
+        );
+
 
         JButton loginButton =
-                new JButton("Login");
+                new JButton(
+                        "LOGIN"
+                );
+
+        loginButton.setBackground(
+                ORANGE
+        );
+
+        loginButton.setForeground(
+                WHITE
+        );
+
+        loginButton.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
+        );
+
+        loginButton.setFocusPainted(
+                false
+        );
+
+        loginButton.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        loginButton.setMaximumSize(
+                new Dimension(
+                        150,
+                        40
+                )
+        );
 
         loginButton.setAlignmentX(
                 Component.CENTER_ALIGNMENT
         );
 
-        mainPanel.add(titleLabel);
 
-        mainPanel.add(
-                Box.createVerticalStrut(30)
+        loginCard.add(
+                loginTitle
         );
 
-        mainPanel.add(formPanel);
-
-        mainPanel.add(
-                Box.createVerticalStrut(20)
+        loginCard.add(
+                Box.createVerticalStrut(
+                        25
+                )
         );
 
-        mainPanel.add(loginButton);
+        loginCard.add(
+                formPanel
+        );
 
-        add(mainPanel);
+        loginCard.add(
+                Box.createVerticalStrut(
+                        20
+                )
+        );
+
+        loginCard.add(
+                loginButton
+        );
 
 
-        loginButton.addActionListener(e -> {
+        backgroundPanel.add(
+                loginCard
+        );
 
-            String username =
-                    usernameField
-                            .getText()
-                            .trim();
+        add(
+                backgroundPanel,
+                BorderLayout.CENTER
+        );
 
-            String password =
-                    new String(
-                            passwordField
-                                    .getPassword()
+
+        // ===============================
+        // LOGIN ACTION
+        // ===============================
+
+        loginButton.addActionListener(
+                e -> login()
+        );
+
+        passwordField
+                .addActionListener(
+                        e -> login()
+                );
+    }
+
+
+    private void login() {
+
+        String username =
+                usernameField
+                        .getText()
+                        .trim();
+
+        String password =
+                new String(
+                        passwordField
+                                .getPassword()
+                );
+
+
+        if (username.isEmpty()
+                || password.isEmpty()) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please enter username and password.",
+                    "Missing Information",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+
+        User user =
+                authenticationService.login(
+                        username,
+                        password
+                );
+
+
+        if (user != null) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Welcome "
+                            + user.getName()
+                            + "!",
+                    "Login Successful",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+
+            UserManagementFrame frame =
+                    new UserManagementFrame(
+                            user
                     );
 
-            if (username.isEmpty()
-                    || password.isEmpty()) {
+            frame.setVisible(
+                    true
+            );
 
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Please enter username and password."
-                );
+            dispose();
 
-                return;
-            }
+        } else {
 
-            User user =
-                    authenticationService.login(
-                            username,
-                            password
-                    );
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Invalid username, password, or inactive account.",
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE
+            );
 
-            if (user != null) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Login successful!\nWelcome "
-                                + user.getName()
-                );
-
-                UserManagementFrame frame =
-                        new UserManagementFrame(user);
-
-                frame.setVisible(true);
-
-                dispose();
-
-            } else {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Invalid username, password, or inactive account."
-                );
-
-                passwordField.setText("");
-            }
-        });
-
-
-        passwordField.addActionListener(
-                e -> loginButton.doClick()
-        );
+            passwordField.setText(
+                    ""
+            );
+        }
     }
 }

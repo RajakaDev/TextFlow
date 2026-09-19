@@ -9,7 +9,6 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // Make sure the system has an initial OWNER account
         DefaultOwnerSetup.ensureOwnerExists();
 
         SwingUtilities.invokeLater(() -> {

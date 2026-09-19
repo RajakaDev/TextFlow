@@ -4,6 +4,7 @@ import lk.textflow.dao.UserDAO;
 import lk.textflow.model.User;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -16,32 +17,23 @@ public class UserManagementFrame extends JFrame {
     private JTextField nameField;
     private JTextField usernameField;
     private JPasswordField passwordField;
-
     private JComboBox<String> roleComboBox;
-
     private JTextField positionField;
     private JTextField contactField;
-
     private JComboBox<String> statusComboBox;
-
     private JTextField searchField;
 
-    private User loggedInUser;
+    private final User loggedInUser;
+
+    private final Color DARK_BLUE =
+            new Color(31, 60, 136);
+
+    private final Color LIGHT_BACKGROUND =
+            new Color(245, 247, 250);
 
     public UserManagementFrame(User loggedInUser) {
 
         this.loggedInUser = loggedInUser;
-
-        setTitle("TextFlow - User Management");
-        setSize(1000, 680);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
-
-
-        // =====================================
-        // ROLE CHECKS
-        // =====================================
 
         boolean isOwner =
                 "OWNER".equalsIgnoreCase(
@@ -58,16 +50,36 @@ public class UserManagementFrame extends JFrame {
                         loggedInUser.getRole()
                 );
 
+        setTitle("TextFlow - User Management");
+        setSize(1100, 720);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        // =====================================
-        // TITLE
-        // =====================================
+        // ==================================================
+        // HEADER
+        // ==================================================
+
+        JPanel headerPanel =
+                new JPanel(new BorderLayout());
+
+        headerPanel.setBackground(DARK_BLUE);
+
+        headerPanel.setBorder(
+                new EmptyBorder(
+                        15,
+                        25,
+                        15,
+                        25
+                )
+        );
 
         JLabel titleLabel =
                 new JLabel(
-                        "User Management",
-                        SwingConstants.CENTER
+                        "TEXTFLOW  |  User Management"
                 );
+
+        titleLabel.setForeground(Color.WHITE);
 
         titleLabel.setFont(
                 new Font(
@@ -77,41 +89,134 @@ public class UserManagementFrame extends JFrame {
                 )
         );
 
-
         JLabel loggedInLabel =
                 new JLabel(
-                        "Logged in as: "
-                                + loggedInUser.getName()
-                                + " | Role: "
+                        loggedInUser.getName()
+                                + "  |  "
                                 + loggedInUser.getRole()
-                                + " | Position: "
-                                + loggedInUser.getPosition(),
-                        SwingConstants.CENTER
                 );
 
+        loggedInLabel.setForeground(Color.WHITE);
 
-        // =====================================
-        // FORM
-        // =====================================
+        loggedInLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        13
+                )
+        );
 
-        JPanel formPanel =
+        headerPanel.add(
+                titleLabel,
+                BorderLayout.WEST
+        );
+
+        headerPanel.add(
+                loggedInLabel,
+                BorderLayout.EAST
+        );
+
+        add(
+                headerPanel,
+                BorderLayout.NORTH
+        );
+
+        // ==================================================
+        // MAIN PANEL
+        // ==================================================
+
+        JPanel mainPanel =
                 new JPanel(
-                        new GridLayout(
-                                7,
-                                2,
+                        new BorderLayout(
+                                15,
+                                15
+                        )
+                );
+
+        mainPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+        mainPanel.setBorder(
+                new EmptyBorder(
+                        15,
+                        20,
+                        15,
+                        20
+                )
+        );
+
+        // ==================================================
+        // USER DETAILS CARD
+        // ==================================================
+
+        JPanel formCard =
+                new JPanel(
+                        new BorderLayout(
                                 10,
                                 10
                         )
                 );
 
+        formCard.setBackground(
+                Color.WHITE
+        );
 
-        nameField = new JTextField();
+        formCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                new Color(
+                                        220,
+                                        225,
+                                        230
+                                )
+                        ),
+                        new EmptyBorder(
+                                15,
+                                20,
+                                15,
+                                20
+                        )
+                )
+        );
 
-        usernameField = new JTextField();
+        JLabel formTitle =
+                new JLabel(
+                        "User Details"
+                );
+
+        formTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        formTitle.setForeground(
+                DARK_BLUE
+        );
+
+        JPanel formPanel =
+                new JPanel(
+                        new GridLayout(
+                                4,
+                                4,
+                                12,
+                                12
+                        )
+                );
+
+        formPanel.setOpaque(false);
+
+        nameField =
+                new JTextField();
+
+        usernameField =
+                new JTextField();
 
         passwordField =
                 new JPasswordField();
-
 
         roleComboBox =
                 new JComboBox<>(
@@ -122,13 +227,11 @@ public class UserManagementFrame extends JFrame {
                         }
                 );
 
-
         positionField =
                 new JTextField();
 
         contactField =
                 new JTextField();
-
 
         statusComboBox =
                 new JComboBox<>(
@@ -138,13 +241,11 @@ public class UserManagementFrame extends JFrame {
                         }
                 );
 
-
         formPanel.add(
                 new JLabel("Name:")
         );
 
         formPanel.add(nameField);
-
 
         formPanel.add(
                 new JLabel("Username:")
@@ -152,15 +253,11 @@ public class UserManagementFrame extends JFrame {
 
         formPanel.add(usernameField);
 
-
         formPanel.add(
-                new JLabel(
-                        "Password (Add only):"
-                )
+                new JLabel("Password:")
         );
 
         formPanel.add(passwordField);
-
 
         formPanel.add(
                 new JLabel("Role:")
@@ -168,20 +265,17 @@ public class UserManagementFrame extends JFrame {
 
         formPanel.add(roleComboBox);
 
-
         formPanel.add(
                 new JLabel("Position:")
         );
 
         formPanel.add(positionField);
 
-
         formPanel.add(
-                new JLabel("Contact Number:")
+                new JLabel("Contact:")
         );
 
         formPanel.add(contactField);
-
 
         formPanel.add(
                 new JLabel("Status:")
@@ -189,32 +283,118 @@ public class UserManagementFrame extends JFrame {
 
         formPanel.add(statusComboBox);
 
+        formPanel.add(
+                new JLabel("")
+        );
 
-        // =====================================
-        // BUTTONS
-        // =====================================
+        formPanel.add(
+                new JLabel("")
+        );
+
+        // ==================================================
+        // POLISHED LIGHT BUTTONS
+        // ==================================================
 
         JButton addButton =
-                new JButton("Add User");
+                createButton(
+                        "Add User",
+                        new Color(
+                                220,
+                                245,
+                                228
+                        ),
+                        new Color(
+                                34,
+                                100,
+                                58
+                        )
+                );
 
         JButton updateButton =
-                new JButton("Update User");
+                createButton(
+                        "Update",
+                        new Color(
+                                219,
+                                234,
+                                254
+                        ),
+                        new Color(
+                                30,
+                                64,
+                                175
+                        )
+                );
 
         JButton deactivateButton =
-                new JButton("Deactivate");
+                createButton(
+                        "Deactivate",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                153,
+                                27,
+                                27
+                        )
+                );
 
         JButton attendanceButton =
-                new JButton("Attendance");
+                createButton(
+                        "Attendance",
+                        new Color(
+                                237,
+                                233,
+                                254
+                        ),
+                        new Color(
+                                91,
+                                33,
+                                182
+                        )
+                );
 
         JButton clearButton =
-                new JButton("Clear");
+                createButton(
+                        "Clear",
+                        new Color(
+                                243,
+                                244,
+                                246
+                        ),
+                        new Color(
+                                55,
+                                65,
+                                81
+                        )
+                );
 
         JButton logoutButton =
-                new JButton("Logout");
-
+                createButton(
+                        "Logout",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                127,
+                                29,
+                                29
+                        )
+                );
 
         JPanel buttonPanel =
-                new JPanel();
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                10,
+                                5
+                        )
+                );
+
+        buttonPanel.setOpaque(false);
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
@@ -223,23 +403,118 @@ public class UserManagementFrame extends JFrame {
         buttonPanel.add(clearButton);
         buttonPanel.add(logoutButton);
 
+        formCard.add(
+                formTitle,
+                BorderLayout.NORTH
+        );
 
-        // =====================================
-        // SEARCH
-        // =====================================
+        formCard.add(
+                formPanel,
+                BorderLayout.CENTER
+        );
+
+        formCard.add(
+                buttonPanel,
+                BorderLayout.SOUTH
+        );
+
+        mainPanel.add(
+                formCard,
+                BorderLayout.NORTH
+        );
+
+        // ==================================================
+        // USER TABLE CARD
+        // ==================================================
+
+        JPanel tableCard =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        tableCard.setBackground(
+                Color.WHITE
+        );
+
+        tableCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                new Color(
+                                        220,
+                                        225,
+                                        230
+                                )
+                        ),
+                        new EmptyBorder(
+                                15,
+                                15,
+                                15,
+                                15
+                        )
+                )
+        );
+
+        JLabel recordsLabel =
+                new JLabel(
+                        "User Records"
+                );
+
+        recordsLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        recordsLabel.setForeground(
+                DARK_BLUE
+        );
 
         searchField =
                 new JTextField(20);
 
         JButton searchButton =
-                new JButton("Search");
+                createButton(
+                        "Search",
+                        new Color(
+                                254,
+                                243,
+                                199
+                        ),
+                        new Color(
+                                146,
+                                64,
+                                14
+                        )
+                );
 
         JButton refreshButton =
-                new JButton("Refresh");
-
+                createButton(
+                        "Refresh",
+                        new Color(
+                                204,
+                                251,
+                                241
+                        ),
+                        new Color(
+                                17,
+                                94,
+                                89
+                        )
+                );
 
         JPanel searchPanel =
-                new JPanel();
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.RIGHT
+                        )
+                );
+
+        searchPanel.setOpaque(false);
 
         searchPanel.add(
                 new JLabel(
@@ -251,66 +526,22 @@ public class UserManagementFrame extends JFrame {
         searchPanel.add(searchButton);
         searchPanel.add(refreshButton);
 
+        JPanel tableTop =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-        // =====================================
-        // TOP PANEL
-        // =====================================
+        tableTop.setOpaque(false);
 
-        JPanel topPanel =
-                new JPanel();
-
-        topPanel.setLayout(
-                new BoxLayout(
-                        topPanel,
-                        BoxLayout.Y_AXIS
-                )
+        tableTop.add(
+                recordsLabel,
+                BorderLayout.WEST
         );
 
-        topPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        15,
-                        20,
-                        10,
-                        20
-                )
+        tableTop.add(
+                searchPanel,
+                BorderLayout.EAST
         );
-
-        topPanel.add(titleLabel);
-
-        topPanel.add(
-                Box.createVerticalStrut(5)
-        );
-
-        topPanel.add(loggedInLabel);
-
-        topPanel.add(
-                Box.createVerticalStrut(15)
-        );
-
-        topPanel.add(formPanel);
-
-        topPanel.add(
-                Box.createVerticalStrut(10)
-        );
-
-        topPanel.add(buttonPanel);
-
-        topPanel.add(
-                Box.createVerticalStrut(10)
-        );
-
-        topPanel.add(searchPanel);
-
-
-        add(
-                topPanel,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================
-        // TABLE
-        // =====================================
 
         String[] columns = {
                 "ID",
@@ -321,7 +552,6 @@ public class UserManagementFrame extends JFrame {
                 "Contact",
                 "Status"
         };
-
 
         tableModel =
                 new DefaultTableModel(
@@ -334,76 +564,102 @@ public class UserManagementFrame extends JFrame {
                             int row,
                             int column
                     ) {
-
                         return false;
                     }
                 };
-
 
         userTable =
                 new JTable(
                         tableModel
                 );
 
+        userTable.setRowHeight(28);
+
         userTable.setSelectionMode(
                 ListSelectionModel
                         .SINGLE_SELECTION
         );
 
+        userTable.setGridColor(
+                new Color(
+                        225,
+                        230,
+                        235
+                )
+        );
+
+        userTable
+                .getTableHeader()
+                .setBackground(
+                        DARK_BLUE
+                );
+
+        userTable
+                .getTableHeader()
+                .setForeground(
+                        Color.WHITE
+                );
+
+        userTable
+                .getTableHeader()
+                .setFont(
+                        new Font(
+                                "Arial",
+                                Font.BOLD,
+                                13
+                        )
+                );
 
         JScrollPane scrollPane =
                 new JScrollPane(
                         userTable
                 );
 
+        tableCard.add(
+                tableTop,
+                BorderLayout.NORTH
+        );
 
-        add(
+        tableCard.add(
                 scrollPane,
                 BorderLayout.CENTER
         );
 
+        mainPanel.add(
+                tableCard,
+                BorderLayout.CENTER
+        );
 
-        // =====================================
-        // PERMISSIONS
-        // =====================================
+        add(
+                mainPanel,
+                BorderLayout.CENTER
+        );
 
-        // Only OWNER manages accounts
+        // ==================================================
+        // ROLE PERMISSIONS
+        // ==================================================
+
         addButton.setEnabled(isOwner);
-
         updateButton.setEnabled(isOwner);
-
         deactivateButton.setEnabled(isOwner);
 
-
-        // Owner is the only person who edits account fields
         nameField.setEnabled(isOwner);
-
         usernameField.setEnabled(isOwner);
-
         passwordField.setEnabled(isOwner);
-
         roleComboBox.setEnabled(isOwner);
-
         positionField.setEnabled(isOwner);
-
         contactField.setEnabled(isOwner);
-
         statusComboBox.setEnabled(isOwner);
 
-
-        // All roles can open attendance.
-        // Employee only sees their own user row,
-        // so they can only open their own attendance.
         attendanceButton.setEnabled(
                 isOwner
                         || isManager
                         || isEmployee
         );
 
-
-        // =====================================
+        // ==================================================
         // TABLE CLICK
-        // =====================================
+        // ==================================================
 
         userTable
                 .getSelectionModel()
@@ -425,69 +681,52 @@ public class UserManagementFrame extends JFrame {
                                             )
                                     );
 
-                                    usernameField
-                                            .setText(
-                                                    value(
-                                                            row,
-                                                            2
-                                                    )
-                                            );
+                                    usernameField.setText(
+                                            value(
+                                                    row,
+                                                    2
+                                            )
+                                    );
 
-                                    roleComboBox
-                                            .setSelectedItem(
-                                                    value(
-                                                            row,
-                                                            3
-                                                    )
-                                            );
+                                    roleComboBox.setSelectedItem(
+                                            value(
+                                                    row,
+                                                    3
+                                            )
+                                    );
 
-                                    positionField
-                                            .setText(
-                                                    value(
-                                                            row,
-                                                            4
-                                                    )
-                                            );
+                                    positionField.setText(
+                                            value(
+                                                    row,
+                                                    4
+                                            )
+                                    );
 
-                                    contactField
-                                            .setText(
-                                                    value(
-                                                            row,
-                                                            5
-                                                    )
-                                            );
+                                    contactField.setText(
+                                            value(
+                                                    row,
+                                                    5
+                                            )
+                                    );
 
-                                    statusComboBox
-                                            .setSelectedItem(
-                                                    value(
-                                                            row,
-                                                            6
-                                                    )
-                                            );
+                                    statusComboBox.setSelectedItem(
+                                            value(
+                                                    row,
+                                                    6
+                                            )
+                                    );
 
-                                    passwordField
-                                            .setText("");
+                                    passwordField.setText("");
                                 }
                             }
                         }
                 );
 
-
-        // =====================================
-        // ADD USER - OWNER ONLY
-        // =====================================
+        // ==================================================
+        // ADD USER
+        // ==================================================
 
         addButton.addActionListener(e -> {
-
-            if (!isOwner) {
-
-                showMessage(
-                        "Only the Owner can create user accounts."
-                );
-
-                return;
-            }
-
 
             String name =
                     nameField
@@ -525,118 +764,95 @@ public class UserManagementFrame extends JFrame {
                             .getSelectedItem()
                             .toString();
 
-
             if (name.isEmpty()) {
 
-                showMessage(
+                message(
                         "Name is required."
                 );
 
                 return;
             }
 
-
             if (username.isEmpty()) {
 
-                showMessage(
+                message(
                         "Username is required."
                 );
 
                 return;
             }
 
-
             if (password.isEmpty()) {
 
-                showMessage(
+                message(
                         "Password is required."
                 );
 
                 return;
             }
 
-
             if (password.length() < 6) {
 
-                showMessage(
-                        "Password must contain at least 6 characters."
+                message(
+                        "Password must have at least 6 characters."
                 );
 
                 return;
             }
 
-
             if (!contact.isEmpty()
-                    && !contact.matches("\\d{10}")) {
+                    && !contact.matches(
+                    "\\d{10}"
+            )) {
 
-                showMessage(
+                message(
                         "Contact number must contain 10 digits."
                 );
 
                 return;
             }
 
+            if ("OWNER".equalsIgnoreCase(
+                    role
+            )) {
 
-            // The preset owner is the main OWNER.
-            // Do not create additional OWNER accounts.
-            if ("OWNER".equalsIgnoreCase(role)) {
-
-                showMessage(
-                        "A default Owner account already exists.\n"
-                                + "Create a MANAGER or EMPLOYEE account."
+                message(
+                        "The system already has an Owner.\n"
+                                + "Please create a Manager or Employee."
                 );
 
                 return;
             }
 
-
             UserDAO userDAO =
                     new UserDAO();
 
+            if (userDAO
+                    .findUserByUsername(
+                            username
+                    ) != null) {
 
-            User existingUser =
-                    userDAO
-                            .findUserByUsername(
-                                    username
-                            );
-
-
-            if (existingUser != null) {
-
-                showMessage(
+                message(
                         "Username already exists."
                 );
 
                 return;
             }
 
-
             User user =
                     new User();
 
             user.setName(name);
-
             user.setUsername(username);
-
-            // addUser() hashes this
             user.setPasswordHash(password);
-
             user.setRole(role);
-
             user.setPosition(position);
-
             user.setContactNumber(contact);
-
             user.setStatus(status);
 
+            if (userDAO.addUser(user)) {
 
-            boolean added =
-                    userDAO.addUser(user);
-
-
-            if (added) {
-
-                showMessage(
+                message(
                         "User added successfully!"
                 );
 
@@ -646,43 +862,30 @@ public class UserManagementFrame extends JFrame {
 
             } else {
 
-                showMessage(
+                message(
                         "User could not be added."
                 );
             }
         });
 
-
-        // =====================================
-        // UPDATE USER - OWNER ONLY
-        // =====================================
+        // ==================================================
+        // UPDATE USER
+        // ==================================================
 
         updateButton.addActionListener(e -> {
-
-            if (!isOwner) {
-
-                showMessage(
-                        "Only the Owner can update user accounts."
-                );
-
-                return;
-            }
-
 
             int row =
                     userTable
                             .getSelectedRow();
 
-
             if (row == -1) {
 
-                showMessage(
+                message(
                         "Please select a user first."
                 );
 
                 return;
             }
-
 
             int userId =
                     Integer.parseInt(
@@ -692,13 +895,11 @@ public class UserManagementFrame extends JFrame {
                             )
                     );
 
-
             String originalRole =
                     value(
                             row,
                             3
                     );
-
 
             String name =
                     nameField
@@ -730,41 +931,36 @@ public class UserManagementFrame extends JFrame {
                             .getSelectedItem()
                             .toString();
 
-
             if (name.isEmpty()
                     || username.isEmpty()) {
 
-                showMessage(
+                message(
                         "Name and Username are required."
                 );
 
                 return;
             }
 
-
             if (!contact.isEmpty()
-                    && !contact.matches("\\d{10}")) {
+                    && !contact.matches(
+                    "\\d{10}"
+            )) {
 
-                showMessage(
+                message(
                         "Contact number must contain 10 digits."
                 );
 
                 return;
             }
 
-
-            // Protect preset owner role
             if ("OWNER".equalsIgnoreCase(
                     originalRole
             )) {
 
                 role = "OWNER";
-
                 status = "ACTIVE";
             }
 
-
-            // Do not promote another account to OWNER
             if (!"OWNER".equalsIgnoreCase(
                     originalRole
             )
@@ -772,63 +968,46 @@ public class UserManagementFrame extends JFrame {
                     role
             )) {
 
-                showMessage(
-                        "You cannot create another Owner account."
+                message(
+                        "Another Owner account cannot be created."
                 );
 
                 return;
             }
 
-
             UserDAO userDAO =
                     new UserDAO();
 
-
             User existing =
-                    userDAO
-                            .findUserByUsername(
-                                    username
-                            );
-
+                    userDAO.findUserByUsername(
+                            username
+                    );
 
             if (existing != null
                     && existing.getUserId()
                     != userId) {
 
-                showMessage(
+                message(
                         "Username already belongs to another user."
                 );
 
                 return;
             }
 
-
             User user =
                     new User();
 
             user.setUserId(userId);
-
             user.setName(name);
-
             user.setUsername(username);
-
             user.setRole(role);
-
             user.setPosition(position);
-
             user.setContactNumber(contact);
-
             user.setStatus(status);
 
+            if (userDAO.updateUser(user)) {
 
-            boolean updated =
-                    userDAO
-                            .updateUser(user);
-
-
-            if (updated) {
-
-                showMessage(
+                message(
                         "User updated successfully!"
                 );
 
@@ -838,43 +1017,30 @@ public class UserManagementFrame extends JFrame {
 
             } else {
 
-                showMessage(
+                message(
                         "User could not be updated."
                 );
             }
         });
 
-
-        // =====================================
-        // DEACTIVATE - OWNER ONLY
-        // =====================================
+        // ==================================================
+        // DEACTIVATE
+        // ==================================================
 
         deactivateButton.addActionListener(e -> {
-
-            if (!isOwner) {
-
-                showMessage(
-                        "Only the Owner can deactivate accounts."
-                );
-
-                return;
-            }
-
 
             int row =
                     userTable
                             .getSelectedRow();
 
-
             if (row == -1) {
 
-                showMessage(
+                message(
                         "Please select a user first."
                 );
 
                 return;
             }
-
 
             int userId =
                     Integer.parseInt(
@@ -884,45 +1050,30 @@ public class UserManagementFrame extends JFrame {
                             )
                     );
 
-
             String selectedRole =
                     value(
                             row,
                             3
                     );
 
-
             if ("OWNER".equalsIgnoreCase(
                     selectedRole
             )) {
 
-                showMessage(
+                message(
                         "The Owner account cannot be deactivated."
                 );
 
                 return;
             }
 
-
-            if (userId
-                    == loggedInUser.getUserId()) {
-
-                showMessage(
-                        "You cannot deactivate your own logged-in account."
-                );
-
-                return;
-            }
-
-
             int confirm =
                     JOptionPane.showConfirmDialog(
                             this,
-                            "Are you sure you want to deactivate this user?",
+                            "Deactivate this user?",
                             "Confirm Deactivation",
                             JOptionPane.YES_NO_OPTION
                     );
-
 
             if (confirm
                     != JOptionPane.YES_OPTION) {
@@ -930,21 +1081,15 @@ public class UserManagementFrame extends JFrame {
                 return;
             }
 
-
             UserDAO userDAO =
                     new UserDAO();
 
+            if (userDAO.deactivateUser(
+                    userId
+            )) {
 
-            boolean deactivated =
-                    userDAO.deactivateUser(
-                            userId
-                    );
-
-
-            if (deactivated) {
-
-                showMessage(
-                        "User deactivated successfully!"
+                message(
+                        "User deactivated successfully."
                 );
 
                 clearForm();
@@ -953,16 +1098,15 @@ public class UserManagementFrame extends JFrame {
 
             } else {
 
-                showMessage(
+                message(
                         "User could not be deactivated."
                 );
             }
         });
 
-
-        // =====================================
+        // ==================================================
         // ATTENDANCE
-        // =====================================
+        // ==================================================
 
         attendanceButton.addActionListener(e -> {
 
@@ -970,16 +1114,14 @@ public class UserManagementFrame extends JFrame {
                     userTable
                             .getSelectedRow();
 
-
             if (row == -1) {
 
-                showMessage(
+                message(
                         "Please select a user first."
                 );
 
                 return;
             }
-
 
             int selectedUserId =
                     Integer.parseInt(
@@ -989,38 +1131,33 @@ public class UserManagementFrame extends JFrame {
                             )
                     );
 
-
-            // Employee may only view own attendance
             if (isEmployee
                     && selectedUserId
-                    != loggedInUser.getUserId()) {
+                    != loggedInUser
+                    .getUserId()) {
 
-                showMessage(
+                message(
                         "Employees can only view their own attendance."
                 );
 
                 return;
             }
 
-
-            boolean canManageAttendance =
+            boolean canManage =
                     isOwner || isManager;
-
 
             AttendanceManagementFrame frame =
                     new AttendanceManagementFrame(
                             selectedUserId,
-                            canManageAttendance
+                            canManage
                     );
-
 
             frame.setVisible(true);
         });
 
-
-        // =====================================
+        // ==================================================
         // SEARCH
-        // =====================================
+        // ==================================================
 
         searchButton.addActionListener(e -> {
 
@@ -1029,7 +1166,6 @@ public class UserManagementFrame extends JFrame {
                             .getText()
                             .trim();
 
-
             if (username.isEmpty()) {
 
                 loadUsers();
@@ -1037,24 +1173,19 @@ public class UserManagementFrame extends JFrame {
                 return;
             }
 
-
-            UserDAO userDAO =
+            UserDAO dao =
                     new UserDAO();
 
-
             User user =
-                    userDAO
-                            .findUserByUsername(
-                                    username
-                            );
-
+                    dao.findUserByUsername(
+                            username
+                    );
 
             tableModel.setRowCount(0);
 
-
             if (user == null) {
 
-                showMessage(
+                message(
                         "User not found."
                 );
 
@@ -1063,13 +1194,12 @@ public class UserManagementFrame extends JFrame {
                 return;
             }
 
-
-            // Employee can only search themselves
             if (isEmployee
                     && user.getUserId()
-                    != loggedInUser.getUserId()) {
+                    != loggedInUser
+                    .getUserId()) {
 
-                showMessage(
+                message(
                         "Employees can only view their own account."
                 );
 
@@ -1078,14 +1208,8 @@ public class UserManagementFrame extends JFrame {
                 return;
             }
 
-
             addUserToTable(user);
         });
-
-
-        // =====================================
-        // REFRESH
-        // =====================================
 
         refreshButton.addActionListener(e -> {
 
@@ -1096,115 +1220,150 @@ public class UserManagementFrame extends JFrame {
             loadUsers();
         });
 
-
-        // =====================================
-        // CLEAR
-        // =====================================
-
         clearButton.addActionListener(
                 e -> clearForm()
         );
 
-
-        // =====================================
+        // ==================================================
         // LOGOUT
-        // =====================================
+        // ==================================================
 
         logoutButton.addActionListener(e -> {
 
             int confirm =
                     JOptionPane.showConfirmDialog(
                             this,
-                            "Are you sure you want to logout?",
+                            "Logout from TextFlow?",
                             "Logout",
                             JOptionPane.YES_NO_OPTION
                     );
 
-
             if (confirm
                     == JOptionPane.YES_OPTION) {
 
-                LoginFrame loginFrame =
-                        new LoginFrame();
-
-                loginFrame.setVisible(true);
+                new LoginFrame()
+                        .setVisible(true);
 
                 dispose();
             }
         });
 
-
         loadUsers();
     }
 
+    // ==================================================
+    // BUTTON STYLE
+    // ==================================================
 
-    // =====================================
-    // LOAD USERS BASED ON ROLE
-    // =====================================
+    private JButton createButton(
+            String text,
+            Color backgroundColor,
+            Color textColor
+    ) {
+
+        JButton button =
+                new JButton(text);
+
+        button.setBackground(
+                backgroundColor
+        );
+
+        button.setForeground(
+                textColor
+        );
+
+        button.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        button.setFocusPainted(false);
+
+        button.setOpaque(true);
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        button.setPreferredSize(
+                new Dimension(
+                        125,
+                        36
+                )
+        );
+
+        button.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                backgroundColor.darker()
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                7,
+                                14,
+                                7,
+                                14
+                        )
+                )
+        );
+
+        return button;
+    }
 
     private void loadUsers() {
 
-        UserDAO userDAO =
+        UserDAO dao =
                 new UserDAO();
 
         tableModel.setRowCount(0);
 
-
-        // EMPLOYEE sees only themselves
         if ("EMPLOYEE".equalsIgnoreCase(
                 loggedInUser.getRole()
         )) {
 
-            User ownUser =
-                    userDAO.findUserById(
-                            loggedInUser.getUserId()
+            User user =
+                    dao.findUserById(
+                            loggedInUser
+                                    .getUserId()
                     );
 
-            if (ownUser != null) {
+            if (user != null) {
 
-                addUserToTable(
-                        ownUser
-                );
+                addUserToTable(user);
             }
 
             return;
         }
 
-
-        // OWNER and MANAGER can view all users
         List<User> users =
-                userDAO.getAllUsers();
-
+                dao.getAllUsers();
 
         for (User user : users) {
 
-            addUserToTable(
-                    user
-            );
+            addUserToTable(user);
         }
     }
-
 
     private void addUserToTable(
             User user
     ) {
 
-        Object[] row = {
-
-                user.getUserId(),
-                user.getName(),
-                user.getUsername(),
-                user.getRole(),
-                user.getPosition(),
-                user.getContactNumber(),
-                user.getStatus()
-
-        };
-
-
-        tableModel.addRow(row);
+        tableModel.addRow(
+                new Object[]{
+                        user.getUserId(),
+                        user.getName(),
+                        user.getUsername(),
+                        user.getRole(),
+                        user.getPosition(),
+                        user.getContactNumber(),
+                        user.getStatus()
+                }
+        );
     }
-
 
     private String value(
             int row,
@@ -1217,23 +1376,17 @@ public class UserManagementFrame extends JFrame {
                         column
                 );
 
-
         return value == null
                 ? ""
                 : value.toString();
     }
 
-
     private void clearForm() {
 
         nameField.setText("");
-
         usernameField.setText("");
-
         passwordField.setText("");
-
         positionField.setText("");
-
         contactField.setText("");
 
         roleComboBox.setSelectedIndex(0);
@@ -1243,14 +1396,13 @@ public class UserManagementFrame extends JFrame {
         userTable.clearSelection();
     }
 
-
-    private void showMessage(
-            String message
+    private void message(
+            String text
     ) {
 
         JOptionPane.showMessageDialog(
                 this,
-                message
+                text
         );
     }
 }
