@@ -75,4 +75,5 @@ public class InventoryAdjustment {
     public void setAdjustmentDate(LocalDateTime adjustmentDate) {
         this.adjustmentDate = adjustmentDate;
     }
+
 }

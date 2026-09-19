@@ -40,4 +40,5 @@ public class SalesService {
 
         return "PARTIAL";
     }
+
 }

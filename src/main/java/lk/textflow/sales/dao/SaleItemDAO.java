@@ -66,4 +66,21 @@ public class SaleItemDAO {
 
         return items;
     }
+
+    public boolean addSaleItem(SaleItem saleItem, Connection connection) throws SQLException {
+
+        String sql = "INSERT INTO sale_items " +
+                "(sale_id, product_id, quantity, unit_price) " +
+                "VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, saleItem.getSaleId());
+            statement.setInt(2, saleItem.getProductId());
+            statement.setInt(3, saleItem.getQuantity());
+            statement.setBigDecimal(4, saleItem.getUnitPrice());
+
+            return statement.executeUpdate() > 0;
+        }
+    }
 }

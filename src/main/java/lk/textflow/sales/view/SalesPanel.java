@@ -13,6 +13,9 @@ import lk.textflow.dao.ProductDAO;
 import lk.textflow.dao.InventoryAdjustmentDAO;
 import lk.textflow.model.InventoryAdjustment;
 import lk.textflow.model.Product;
+import lk.textflow.config.DatabaseConnection;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 
 
@@ -100,22 +103,34 @@ public class SalesPanel extends JPanel {
 
     private void confirmSale() {
 
-
-        int productId = Integer.parseInt(productIdField.getText());
-        ProductDAO productDAO = new ProductDAO();
-        Product product = null;
-
-        for (Product p : productDAO.getAllProducts()) {
-            if (p.getProductId() == productId) {
-                product = p;
-                break;
-            }
-        }
-        int quantity = Integer.parseInt(quantityField.getText());
-        double unitPrice = Double.parseDouble(unitPriceField.getText());
-
         try {
-            double total = Double.parseDouble(totalLabel.getText());
+            int productId = Integer.parseInt(productIdField.getText());
+            int quantity = Integer.parseInt(quantityField.getText());
+            double unitPrice = Double.parseDouble(unitPriceField.getText());
+
+            if (quantity <= 0 || unitPrice < 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Quantity must be greater than 0 and price cannot be negative.");
+                return;
+            }
+
+            ProductDAO productDAO = new ProductDAO();
+            Product product = null;
+
+            for (Product p : productDAO.getAllProducts()) {
+                if (p.getProductId() == productId) {
+                    product = p;
+                    break;
+                }
+            }
+
+            if (product == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Product not found.");
+                return;
+            }
+
+            double total = quantity * unitPrice;
             double amountGiven = Double.parseDouble(amountGivenField.getText());
 
             String paymentStatus;
@@ -151,58 +166,88 @@ public class SalesPanel extends JPanel {
                     "CONFIRMED"
             );
 
-            int saleId = saleDAO.createSale(sale);
-            lastSaleId = saleId;
+            SaleItem item = new SaleItem(
+                    0,
+                    0,
+                    productId,
+                    quantity,
+                    BigDecimal.valueOf(unitPrice),
+                    BigDecimal.valueOf(quantity * unitPrice)
+            );
 
-            if (saleId > 0) {
+            InventoryAdjustment adjustment =
+                    new InventoryAdjustment(
+                            productId,
+                            userId,
+                            -quantity,
+                            "SALE"
+                    );
 
-                InventoryAdjustment adjustment =
-                        new InventoryAdjustment(
-                                productId,
-                                userId,
-                                -quantity,
-                                "SALE"
-                        );
+            try (Connection connection = DatabaseConnection.getConnection()) {
 
-                InventoryAdjustmentDAO inventoryDAO =
-                        new InventoryAdjustmentDAO();
+                connection.setAutoCommit(false);
 
-                boolean stockUpdated =
-                        inventoryDAO.adjustStock(adjustment);
+                try {
 
-                if (!stockUpdated) {
+                    // 1. Save Sale
+                    int saleId = saleDAO.createSale(sale, connection);
+
+                    if (saleId <= 0) {
+                        throw new SQLException("Sale could not be saved.");
+                    }
+
+                    // 2. Set Sale ID and save Sale Item
+                    item.setSaleId(saleId);
+
+                    SaleItemDAO saleItemDAO = new SaleItemDAO();
+
+                    if (!saleItemDAO.addSaleItem(item, connection)) {
+                        throw new SQLException("Sale item could not be saved.");
+                    }
+
+                    // 3. Reduce stock
+                    InventoryAdjustmentDAO inventoryDAO =
+                            new InventoryAdjustmentDAO();
+
+                    if (!inventoryDAO.adjustStock(adjustment, connection)) {
+                        throw new SQLException(
+                                "Insufficient stock or stock update failed.");
+                    }
+
+                    // Everything succeeded
+                    connection.commit();
+
+                    lastSaleId = saleId;
+
                     JOptionPane.showMessageDialog(this,
-                            "Sale saved, but stock could not be updated.");
-                    return;
+                            "Sale saved successfully!\n" +
+                                    "Sale ID: " + saleId +
+                                    "\nPayment Status: " + paymentStatus);
+
+                } catch (SQLException e) {
+
+                    connection.rollback();
+
+                    JOptionPane.showMessageDialog(this,
+                            "Sale failed. No changes were saved.\n" +
+                                    e.getMessage(),
+                            "Transaction Failed",
+                            JOptionPane.ERROR_MESSAGE);
                 }
 
-                SaleItem item = new SaleItem(
-                        0,
-                        saleId,
-                        productId,
-                        quantity,
-                        BigDecimal.valueOf(unitPrice),
-                        BigDecimal.valueOf(quantity * unitPrice)
-                );
-
-                SaleItemDAO saleItemDAO = new SaleItemDAO();
-                saleItemDAO.addSaleItem(item);
-
-
-            }
-
-            if (saleId > 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Sale saved!\nSale ID: " + saleId +
-                                "\nPayment Status: " + paymentStatus);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Sale was NOT saved.\nPlease check the database error.");
             }
 
         } catch (NumberFormatException e) {
+
             JOptionPane.showMessageDialog(this,
                     "Please enter valid numbers.");
+
+        } catch (SQLException e) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Database error: " + e.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -243,7 +288,19 @@ public class SalesPanel extends JPanel {
         }
 
         SaleDAO saleDAO = new SaleDAO();
-        Sale sale = saleDAO.getSaleById(lastSaleId);
+        Sale sale;
+
+        try {
+            sale = saleDAO.getSaleById(lastSaleId);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Unable to load sale: " + e.getMessage(),
+                    "Receipt",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
 
         if (sale == null) {
             JOptionPane.showMessageDialog(
@@ -255,25 +312,48 @@ public class SalesPanel extends JPanel {
             return;
         }
 
-        String receipt =
-                "====== TEXTFLOW RECEIPT ======\n" +
-                        "Sale ID: " + sale.getSaleId() + "\n" +
-                        "Customer ID: " + sale.getCustomerId() + "\n" +
-                        "Date: " + sale.getSaleDate() + "\n" +
-                        "Total: " + sale.getTotalAmount() + "\n" +
-                        "Amount Given: " + sale.getAmountGiven() + "\n" +
-                        "Balance: " + sale.getBalance() + "\n" +
-                        "Payment Method: " + sale.getPaymentMethod() + "\n" +
-                        "Payment Status: " + sale.getPaymentStatus() + "\n" +
-                        "Status: " + sale.getStatus() + "\n" +
-                        "==============================";
+        SaleItemDAO saleItemDAO = new SaleItemDAO();
+        java.util.List<SaleItem> items =
+                saleItemDAO.getSaleItems(lastSaleId);
+
+        StringBuilder receipt = new StringBuilder();
+
+        receipt.append("========== TEXTFLOW RECEIPT ==========\n");
+        receipt.append("Sale ID: ").append(sale.getSaleId()).append("\n");
+        receipt.append("Customer ID: ").append(sale.getCustomerId()).append("\n");
+        receipt.append("Date: ").append(sale.getSaleDate()).append("\n");
+        receipt.append("-------------------------------------\n");
+
+        receipt.append("Product | Qty | Unit Price | Subtotal\n");
+        receipt.append("-------------------------------------\n");
+
+        for (SaleItem item : items) {
+            receipt.append(item.getProductId())
+                    .append(" | ")
+                    .append(item.getQuantity())
+                    .append(" | ")
+                    .append(item.getUnitPrice())
+                    .append(" | ")
+                    .append(item.getTotalPrice())
+                    .append("\n");
+        }
+
+        receipt.append("-------------------------------------\n");
+        receipt.append("Total: ").append(sale.getTotalAmount()).append("\n");
+        receipt.append("Amount Given: ").append(sale.getAmountGiven()).append("\n");
+        receipt.append("Balance: ").append(sale.getBalance()).append("\n");
+        receipt.append("Payment Method: ").append(sale.getPaymentMethod()).append("\n");
+        receipt.append("Payment Status: ").append(sale.getPaymentStatus()).append("\n");
+        receipt.append("Status: ").append(sale.getStatus()).append("\n");
+        receipt.append("=====================================");
 
         JOptionPane.showMessageDialog(
                 this,
-                receipt,
-                "Receipt",
+                receipt.toString(),
+                "TextFlow Receipt",
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
 
 }
+

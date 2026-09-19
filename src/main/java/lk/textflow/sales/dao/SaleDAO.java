@@ -169,4 +169,44 @@ public class SaleDAO {
 
         return sales;
     }
+    public int createSale(Sale sale, Connection connection) throws SQLException {
+
+        String sql = """
+            INSERT INTO sales
+            (customer_id, user_id, total_amount, amount_given, balance,
+             payment_method, payment_status, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                             sql,
+                             PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+            if (sale.getCustomerId() == null) {
+                statement.setNull(1, java.sql.Types.INTEGER);
+            } else {
+                statement.setInt(1, sale.getCustomerId());
+            }
+
+            statement.setInt(2, sale.getUserId());
+            statement.setBigDecimal(3, sale.getTotalAmount());
+            statement.setBigDecimal(4, sale.getAmountGiven());
+            statement.setBigDecimal(5, sale.getBalance());
+            statement.setString(6, sale.getPaymentMethod());
+            statement.setString(7, sale.getPaymentStatus());
+            statement.setString(8, sale.getStatus());
+
+            statement.executeUpdate();
+
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+
+        return -1;
+    }
 }
+

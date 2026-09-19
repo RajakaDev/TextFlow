@@ -15,3 +15,4 @@ public class SalesHistoryTest {
         frame.setVisible(true);
     }
 }
+
