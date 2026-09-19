@@ -27,6 +27,7 @@ public class SalesPanel extends JPanel {
     private JLabel balanceLabel;
     private JComboBox<String> paymentMethodBox;
     private SaleDAO saleDAO = new SaleDAO();
+    private int lastSaleId = -1;
 
 
 
@@ -150,6 +151,7 @@ public class SalesPanel extends JPanel {
             );
 
             int saleId = saleDAO.createSale(sale);
+            lastSaleId = saleId;
 
             if (saleId > 0) {
 
@@ -225,25 +227,50 @@ public class SalesPanel extends JPanel {
         };
     }
 
-            private void showReceipt() {
-                String receipt =
-                        "===== TEXTFLOW RECEIPT =====\n" +
-                                "Customer ID: " + customerIdField.getText() + "\n" +
-                                "Product ID: " + productIdField.getText() + "\n" +
-                                "Quantity: " + quantityField.getText() + "\n" +
-                                "Unit Price: " + unitPriceField.getText() + "\n" +
-                                "Total: " + totalLabel.getText() + "\n" +
-                                "Amount Given: " + amountGivenField.getText() + "\n" +
-                                "Balance: " + balanceLabel.getText() + "\n" +
-                                "Payment Method: " + paymentMethodBox.getSelectedItem() + "\n" +
-                                "============================";
+    private void showReceipt() {
 
-                JOptionPane.showMessageDialog(
-                        this,
-                        receipt,
-                        "Receipt",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            }
-
+        if (lastSaleId <= 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please confirm a sale first.",
+                    "Receipt",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
         }
+
+        SaleDAO saleDAO = new SaleDAO();
+        Sale sale = saleDAO.getSaleById(lastSaleId);
+
+        if (sale == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Sale not found.",
+                    "Receipt",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        String receipt =
+                "====== TEXTFLOW RECEIPT ======\n" +
+                        "Sale ID: " + sale.getSaleId() + "\n" +
+                        "Customer ID: " + sale.getCustomerId() + "\n" +
+                        "Date: " + sale.getSaleDate() + "\n" +
+                        "Total: " + sale.getTotalAmount() + "\n" +
+                        "Amount Given: " + sale.getAmountGiven() + "\n" +
+                        "Balance: " + sale.getBalance() + "\n" +
+                        "Payment Method: " + sale.getPaymentMethod() + "\n" +
+                        "Payment Status: " + sale.getPaymentStatus() + "\n" +
+                        "Status: " + sale.getStatus() + "\n" +
+                        "==============================";
+
+        JOptionPane.showMessageDialog(
+                this,
+                receipt,
+                "Receipt",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+}
