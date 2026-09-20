@@ -317,3 +317,12 @@ CREATE INDEX idx_sale_date
 
 CREATE INDEX idx_expense_date
     ON expenses(expense_date);
+
+-- Sales Return / Refund
+CREATE TABLE IF NOT EXISTS sales_returns (
+                                             return_id INT AUTO_INCREMENT PRIMARY KEY,
+                                             sale_id INT NOT NULL,
+                                             product_id INT NOT NULL,
+                                             quantity INT NOT NULL,
+                                             return_amount DECIMAL(10,2) NOT NULL
+    );
