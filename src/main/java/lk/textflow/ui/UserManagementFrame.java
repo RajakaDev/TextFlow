@@ -52,8 +52,7 @@ public class UserManagementFrame extends JFrame {
 
         setTitle("TextFlow - User Management");
         setSize(1100, 720);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         // ==================================================

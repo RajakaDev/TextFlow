@@ -14,7 +14,7 @@ public class ProductInventoryFrame extends JFrame {
 
         setSize(1200, 800);
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         setLocationRelativeTo(null);
 

@@ -383,8 +383,8 @@ public class LoginFrame extends JFrame {
             );
 
 
-            UserManagementFrame frame =
-                    new UserManagementFrame(
+            DashboardFrame frame =
+                    new DashboardFrame(
                             user
                     );
 
