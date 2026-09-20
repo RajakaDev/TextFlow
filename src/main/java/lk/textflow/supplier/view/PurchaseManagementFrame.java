@@ -7,6 +7,7 @@ import lk.textflow.supplier.model.PurchaseItem;
 import lk.textflow.supplier.model.Supplier;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
@@ -31,20 +32,26 @@ public class PurchaseManagementFrame extends JFrame {
     private final PurchaseDAO purchaseDAO;
     private final SupplierDAO supplierDAO;
 
-    private final int userId;
+    private final int loggedInUserId;
 
-    public PurchaseManagementFrame() {
+    // ==============================
+    // COLORS
+    // ==============================
 
-        // Temporary standalone test user
-        this(1);
-    }
+    private final Color DARK_BLUE = new Color(31, 60, 136);
+    private final Color LIGHT_BACKGROUND = new Color(245, 247, 250);
+    private final Color CARD_BORDER = new Color(220, 225, 230);
+
+    // ==============================
+    // CONSTRUCTOR
+    // ==============================
 
     public PurchaseManagementFrame(
-            int userId
+            int loggedInUserId
     ) {
 
-        this.userId =
-                userId;
+        this.loggedInUserId =
+                loggedInUserId;
 
         purchaseDAO =
                 new PurchaseDAO();
@@ -57,8 +64,15 @@ public class PurchaseManagementFrame extends JFrame {
         );
 
         setSize(
-                1150,
-                750
+                1200,
+                780
+        );
+
+        setMinimumSize(
+                new Dimension(
+                        1000,
+                        680
+                )
         );
 
         setDefaultCloseOperation(
@@ -74,70 +88,166 @@ public class PurchaseManagementFrame extends JFrame {
         loadPurchases();
     }
 
+    // ==============================
+    // CREATE UI
+    // ==============================
+
     private void createUI() {
 
-        JPanel mainPanel =
+        JPanel rootPanel =
                 new JPanel(
-                        new BorderLayout(
-                                10,
-                                10
-                        )
+                        new BorderLayout()
                 );
 
-        mainPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        15,
-                        15,
-                        15,
-                        15
+        rootPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+        // ==============================
+        // HEADER
+        // ==============================
+
+        JPanel headerPanel =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        headerPanel.setBackground(
+                DARK_BLUE
+        );
+
+        headerPanel.setBorder(
+                new EmptyBorder(
+                        17, 25, 17, 25
                 )
         );
 
         JLabel titleLabel =
                 new JLabel(
-                        "Purchase Management"
+                        "TEXTFLOW  |  Purchase Management"
                 );
+
+        titleLabel.setForeground(
+                Color.WHITE
+        );
 
         titleLabel.setFont(
                 new Font(
                         "Arial",
                         Font.BOLD,
-                        24
+                        23
                 )
         );
 
-        mainPanel.add(
+        JLabel userLabel =
+                new JLabel(
+                        "User ID: "
+                                + loggedInUserId
+                );
+
+        userLabel.setForeground(
+                new Color(
+                        220, 230, 245
+                )
+        );
+
+        userLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        12
+                )
+        );
+
+        headerPanel.add(
                 titleLabel,
+                BorderLayout.WEST
+        );
+
+        headerPanel.add(
+                userLabel,
+                BorderLayout.EAST
+        );
+
+        rootPanel.add(
+                headerPanel,
                 BorderLayout.NORTH
         );
 
-        // ==================================================
-        // CREATE PURCHASE PANEL
-        // ==================================================
+        // ==============================
+        // CONTENT
+        // ==============================
 
-        JPanel createPanel =
+        JPanel contentPanel =
                 new JPanel(
                         new BorderLayout(
-                                10,
-                                10
+                                15,
+                                15
                         )
                 );
 
-        createPanel.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Create Purchase"
+        contentPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+        contentPanel.setBorder(
+                new EmptyBorder(
+                        20, 20, 20, 20
                 )
         );
 
-        JPanel fields =
+        // ==============================
+        // CREATE PURCHASE CARD
+        // ==============================
+
+        JPanel createCard =
                 new JPanel(
-                        new GridLayout(
-                                4,
-                                2,
+                        new BorderLayout(
                                 10,
-                                10
+                                12
                         )
                 );
+
+        createCard.setBackground(
+                Color.WHITE
+        );
+
+        createCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                15, 15, 15, 15
+                        )
+                )
+        );
+
+        JLabel createTitle =
+                new JLabel(
+                        "Create Purchase"
+                );
+
+        createTitle.setForeground(
+                DARK_BLUE
+        );
+
+        createTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        17
+                )
+        );
+
+        createCard.add(
+                createTitle,
+                BorderLayout.NORTH
+        );
+
+        // ==============================
+        // FIELDS
+        // ==============================
 
         supplierComboBox =
                 new JComboBox<>();
@@ -151,58 +261,72 @@ public class PurchaseManagementFrame extends JFrame {
         unitCostField =
                 new JTextField();
 
-        fields.add(
-                new JLabel(
-                        "Supplier:"
-                )
-        );
+        JPanel fieldsPanel =
+                new JPanel(
+                        new GridBagLayout()
+                );
 
-        fields.add(
+        fieldsPanel.setOpaque(false);
+
+        GridBagConstraints gbc =
+                new GridBagConstraints();
+
+        gbc.insets =
+                new Insets(
+                        6, 8, 6, 8
+                );
+
+        gbc.anchor =
+                GridBagConstraints.WEST;
+
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                0,
+                0,
+                "Supplier:",
                 supplierComboBox
         );
 
-        fields.add(
-                new JLabel(
-                        "Product:"
-                )
-        );
-
-        fields.add(
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                0,
+                2,
+                "Product:",
                 productComboBox
         );
 
-        fields.add(
-                new JLabel(
-                        "Quantity:"
-                )
-        );
-
-        fields.add(
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                1,
+                0,
+                "Quantity:",
                 quantityField
         );
 
-        fields.add(
-                new JLabel(
-                        "Unit Cost:"
-                )
-        );
-
-        fields.add(
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                1,
+                2,
+                "Unit Cost:",
                 unitCostField
         );
 
-        createPanel.add(
-                fields,
-                BorderLayout.NORTH
+        createCard.add(
+                fieldsPanel,
+                BorderLayout.CENTER
         );
 
-        // ==================================================
+        // ==============================
         // ITEM TABLE
-        // ==================================================
+        // ==============================
 
         itemTableModel =
                 new DefaultTableModel(
-                        new String[]{
+                        new Object[]{
                                 "Product ID",
                                 "Product",
                                 "Quantity",
@@ -222,39 +346,83 @@ public class PurchaseManagementFrame extends JFrame {
                 };
 
         itemTable =
-                new JTable(
+                createStyledTable(
                         itemTableModel
                 );
 
-        itemTable.setRowHeight(
-                25
-        );
-
-        createPanel.add(
+        JScrollPane itemScrollPane =
                 new JScrollPane(
                         itemTable
-                ),
+                );
+
+        itemScrollPane.setPreferredSize(
+                new Dimension(
+                        0,
+                        150
+                )
+        );
+
+        itemScrollPane.setBorder(
+                BorderFactory.createLineBorder(
+                        CARD_BORDER
+                )
+        );
+
+        JPanel itemArea =
+                new JPanel(
+                        new BorderLayout(
+                                5,
+                                5
+                        )
+                );
+
+        itemArea.setOpaque(false);
+
+        itemArea.add(
+                fieldsPanel,
+                BorderLayout.NORTH
+        );
+
+        itemArea.add(
+                itemScrollPane,
                 BorderLayout.CENTER
         );
 
+        createCard.add(
+                itemArea,
+                BorderLayout.CENTER
+        );
+
+        // ==============================
+        // ITEM BUTTONS
+        // ==============================
+
         JButton addItemButton =
-                new JButton(
-                        "Add Item"
+                createButton(
+                        "Add Item",
+                        new Color(220, 245, 228),
+                        new Color(34, 100, 58)
                 );
 
         JButton removeItemButton =
-                new JButton(
-                        "Remove Item"
+                createButton(
+                        "Remove Item",
+                        new Color(254, 226, 226),
+                        new Color(153, 27, 27)
                 );
 
         JButton savePurchaseButton =
-                new JButton(
-                        "Save Purchase"
+                createButton(
+                        "Save Purchase",
+                        new Color(219, 234, 254),
+                        new Color(30, 64, 175)
                 );
 
         JButton clearButton =
-                new JButton(
-                        "Clear"
+                createButton(
+                        "Clear",
+                        new Color(243, 244, 246),
+                        new Color(55, 65, 81)
                 );
 
         totalField =
@@ -263,12 +431,41 @@ public class PurchaseManagementFrame extends JFrame {
                         10
                 );
 
-        totalField.setEditable(
-                false
+        totalField.setEditable(false);
+
+        totalField.setHorizontalAlignment(
+                JTextField.RIGHT
+        );
+
+        totalField.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
         );
 
         JPanel itemButtonPanel =
-                new JPanel();
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                10,
+                                4
+                        )
+                );
+
+        itemButtonPanel.setOpaque(false);
+
+        JLabel totalLabel =
+                new JLabel("Total:");
+
+        totalLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        13
+                )
+        );
 
         itemButtonPanel.add(
                 addItemButton
@@ -279,9 +476,7 @@ public class PurchaseManagementFrame extends JFrame {
         );
 
         itemButtonPanel.add(
-                new JLabel(
-                        "Total:"
-                )
+                totalLabel
         );
 
         itemButtonPanel.add(
@@ -296,16 +491,16 @@ public class PurchaseManagementFrame extends JFrame {
                 clearButton
         );
 
-        createPanel.add(
+        createCard.add(
                 itemButtonPanel,
                 BorderLayout.SOUTH
         );
 
-        // ==================================================
-        // PURCHASE HISTORY
-        // ==================================================
+        // ==============================
+        // HISTORY CARD
+        // ==============================
 
-        JPanel historyPanel =
+        JPanel historyCard =
                 new JPanel(
                         new BorderLayout(
                                 10,
@@ -313,15 +508,46 @@ public class PurchaseManagementFrame extends JFrame {
                         )
                 );
 
-        historyPanel.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Purchase History"
+        historyCard.setBackground(
+                Color.WHITE
+        );
+
+        historyCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                15, 15, 15, 15
+                        )
                 )
+        );
+
+        JLabel historyTitle =
+                new JLabel(
+                        "Purchase History"
+                );
+
+        historyTitle.setForeground(
+                DARK_BLUE
+        );
+
+        historyTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        17
+                )
+        );
+
+        historyCard.add(
+                historyTitle,
+                BorderLayout.NORTH
         );
 
         purchaseTableModel =
                 new DefaultTableModel(
-                        new String[]{
+                        new Object[]{
                                 "Purchase ID",
                                 "Supplier",
                                 "User ID",
@@ -342,53 +568,80 @@ public class PurchaseManagementFrame extends JFrame {
                 };
 
         purchaseTable =
-                new JTable(
+                createStyledTable(
                         purchaseTableModel
                 );
-
-        purchaseTable.setRowHeight(
-                25
-        );
 
         purchaseTable.setSelectionMode(
                 ListSelectionModel
                         .SINGLE_SELECTION
         );
 
-        historyPanel.add(
+        JScrollPane historyScrollPane =
                 new JScrollPane(
                         purchaseTable
-                ),
+                );
+
+        historyScrollPane.setBorder(
+                BorderFactory.createLineBorder(
+                        CARD_BORDER
+                )
+        );
+
+        historyCard.add(
+                historyScrollPane,
                 BorderLayout.CENTER
         );
 
+        // ==============================
+        // HISTORY BUTTONS
+        // ==============================
+
         JButton confirmButton =
-                new JButton(
-                        "Confirm Purchase"
+                createButton(
+                        "Confirm Purchase",
+                        new Color(220, 245, 228),
+                        new Color(34, 100, 58)
                 );
 
         JButton cancelButton =
-                new JButton(
-                        "Cancel Purchase"
+                createButton(
+                        "Cancel Purchase",
+                        new Color(254, 226, 226),
+                        new Color(153, 27, 27)
                 );
 
         JButton refreshButton =
-                new JButton(
-                        "Refresh"
+                createButton(
+                        "Refresh",
+                        new Color(204, 251, 241),
+                        new Color(17, 94, 89)
                 );
 
         JButton supplierButton =
-                new JButton(
-                        "Suppliers"
+                createButton(
+                        "Suppliers",
+                        new Color(237, 233, 254),
+                        new Color(91, 33, 182)
                 );
 
         JButton closeButton =
-                new JButton(
-                        "Close"
+                createButton(
+                        "Close",
+                        new Color(243, 244, 246),
+                        new Color(55, 65, 81)
                 );
 
         JPanel historyButtons =
-                new JPanel();
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                10,
+                                4
+                        )
+                );
+
+        historyButtons.setOpaque(false);
 
         historyButtons.add(
                 confirmButton
@@ -410,109 +663,181 @@ public class PurchaseManagementFrame extends JFrame {
                 closeButton
         );
 
-        historyPanel.add(
+        historyCard.add(
                 historyButtons,
                 BorderLayout.SOUTH
         );
 
+        // ==============================
+        // SPLIT
+        // ==============================
+
         JSplitPane splitPane =
                 new JSplitPane(
                         JSplitPane.VERTICAL_SPLIT,
-                        createPanel,
-                        historyPanel
+                        createCard,
+                        historyCard
                 );
 
         splitPane.setResizeWeight(
-                0.50
+                0.52
         );
 
-        mainPanel.add(
+        splitPane.setBorder(null);
+
+        splitPane.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+        contentPanel.add(
                 splitPane,
                 BorderLayout.CENTER
         );
 
-        add(
-                mainPanel
+        rootPanel.add(
+                contentPanel,
+                BorderLayout.CENTER
         );
 
-        // ==================================================
+        setContentPane(
+                rootPanel
+        );
+
+        // ==============================
         // ACTIONS
-        // ==================================================
+        // ==============================
 
-        productComboBox
-                .addActionListener(
-                        e -> loadSelectedProductCost()
-                );
+        productComboBox.addActionListener(
+                e -> loadSelectedProductCost()
+        );
 
-        addItemButton
-                .addActionListener(
-                        e -> addItem()
-                );
+        addItemButton.addActionListener(
+                e -> addItem()
+        );
 
-        removeItemButton
-                .addActionListener(
-                        e -> removeItem()
-                );
+        removeItemButton.addActionListener(
+                e -> removeItem()
+        );
 
-        savePurchaseButton
-                .addActionListener(
-                        e -> savePurchase()
-                );
+        savePurchaseButton.addActionListener(
+                e -> savePurchase()
+        );
 
-        clearButton
-                .addActionListener(
-                        e -> clearPurchase()
-                );
+        clearButton.addActionListener(
+                e -> clearPurchase()
+        );
 
-        confirmButton
-                .addActionListener(
-                        e -> confirmPurchase()
-                );
+        confirmButton.addActionListener(
+                e -> confirmPurchase()
+        );
 
-        cancelButton
-                .addActionListener(
-                        e -> cancelPurchase()
-                );
+        cancelButton.addActionListener(
+                e -> cancelPurchase()
+        );
 
-        refreshButton
-                .addActionListener(
-                        e -> {
+        refreshButton.addActionListener(
+                e -> {
+                    loadSuppliers();
+                    loadProducts();
+                    loadPurchases();
+                }
+        );
 
-                            loadSuppliers();
-                            loadProducts();
-                            loadPurchases();
-                        }
-                );
+        supplierButton.addActionListener(
+                e -> new SupplierManagementFrame(
+                        loggedInUserId
+                ).setVisible(true)
+        );
 
-        supplierButton
-                .addActionListener(
-                        e -> new SupplierManagementFrame()
-                                .setVisible(true)
-                );
-
-        closeButton
-                .addActionListener(
-                        e -> dispose()
-                );
+        closeButton.addActionListener(
+                e -> dispose()
+        );
     }
 
-    // ==================================================
+    // ==============================
+    // FORM ROW
+    // ==============================
+
+    private void addFormRow(
+            JPanel panel,
+            GridBagConstraints gbc,
+            int row,
+            int startColumn,
+            String labelText,
+            Component component
+    ) {
+
+        gbc.gridx = startColumn;
+        gbc.gridy = row;
+
+        gbc.weightx = 0;
+
+        gbc.fill =
+                GridBagConstraints.NONE;
+
+        JLabel label =
+                new JLabel(
+                        labelText
+                );
+
+        label.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        label.setPreferredSize(
+                new Dimension(
+                        90,
+                        30
+                )
+        );
+
+        panel.add(
+                label,
+                gbc
+        );
+
+        gbc.gridx =
+                startColumn + 1;
+
+        gbc.weightx = 1;
+
+        gbc.fill =
+                GridBagConstraints.HORIZONTAL;
+
+        if (component instanceof JComponent) {
+
+            ((JComponent) component)
+                    .setPreferredSize(
+                            new Dimension(
+                                    330,
+                                    34
+                            )
+                    );
+        }
+
+        panel.add(
+                component,
+                gbc
+        );
+    }
+
+    // ==============================
     // LOAD SUPPLIERS
-    // ==================================================
+    // ==============================
 
     private void loadSuppliers() {
 
-        supplierComboBox
-                .removeAllItems();
+        supplierComboBox.removeAllItems();
 
         List<Supplier> suppliers =
                 supplierDAO
                         .getActiveSuppliers();
 
-        for (
-                Supplier supplier
-                : suppliers
-        ) {
+        for (Supplier supplier : suppliers) {
 
             supplierComboBox.addItem(
                     supplier.getSupplierId()
@@ -522,23 +847,19 @@ public class PurchaseManagementFrame extends JFrame {
         }
     }
 
-    // ==================================================
+    // ==============================
     // LOAD PRODUCTS
-    // ==================================================
+    // ==============================
 
     private void loadProducts() {
 
-        productComboBox
-                .removeAllItems();
+        productComboBox.removeAllItems();
 
         List<String[]> products =
                 purchaseDAO
                         .getActiveProducts();
 
-        for (
-                String[] product
-                : products
-        ) {
+        for (String[] product : products) {
 
             productComboBox.addItem(
                     product[0]
@@ -580,9 +901,9 @@ public class PurchaseManagementFrame extends JFrame {
         }
     }
 
-    // ==================================================
+    // ==============================
     // ADD ITEM
-    // ==================================================
+    // ==============================
 
     private void addItem() {
 
@@ -592,42 +913,35 @@ public class PurchaseManagementFrame extends JFrame {
                         == null
         ) {
 
-            message(
+            warning(
                     "Please select a product."
             );
 
             return;
         }
 
-        String quantityText =
-                quantityField
-                        .getText()
-                        .trim();
-
-        String costText =
-                unitCostField
-                        .getText()
-                        .trim();
-
         int quantity;
-
         BigDecimal unitCost;
 
         try {
 
             quantity =
                     Integer.parseInt(
-                            quantityText
+                            quantityField
+                                    .getText()
+                                    .trim()
                     );
 
             unitCost =
                     new BigDecimal(
-                            costText
+                            unitCostField
+                                    .getText()
+                                    .trim()
                     );
 
         } catch (Exception e) {
 
-            message(
+            warning(
                     "Enter a valid quantity and unit cost."
             );
 
@@ -636,7 +950,7 @@ public class PurchaseManagementFrame extends JFrame {
 
         if (quantity <= 0) {
 
-            message(
+            warning(
                     "Quantity must be greater than zero."
             );
 
@@ -649,7 +963,7 @@ public class PurchaseManagementFrame extends JFrame {
                 ) < 0
         ) {
 
-            message(
+            warning(
                     "Unit cost cannot be negative."
             );
 
@@ -661,16 +975,13 @@ public class PurchaseManagementFrame extends JFrame {
                         .getSelectedItem()
                         .toString();
 
-        String idPart =
-                selectedProduct
-                        .split(
-                                " - ",
-                                2
-                        )[0];
-
         int productId =
                 Integer.parseInt(
-                        idPart
+                        selectedProduct
+                                .split(
+                                        " - ",
+                                        2
+                                )[0]
                 );
 
         String productName =
@@ -684,15 +995,13 @@ public class PurchaseManagementFrame extends JFrame {
                                 2
                         )[0];
 
-        // Prevent duplicate product rows
         for (
                 int i = 0;
-                i < itemTableModel
-                        .getRowCount();
+                i < itemTableModel.getRowCount();
                 i++
         ) {
 
-            int existingProductId =
+            int existingId =
                     Integer.parseInt(
                             itemTableModel
                                     .getValueAt(
@@ -703,11 +1012,11 @@ public class PurchaseManagementFrame extends JFrame {
                     );
 
             if (
-                    existingProductId
+                    existingId
                             == productId
             ) {
 
-                message(
+                warning(
                         "This product is already in the purchase."
                 );
 
@@ -737,9 +1046,9 @@ public class PurchaseManagementFrame extends JFrame {
         calculateTotal();
     }
 
-    // ==================================================
+    // ==============================
     // REMOVE ITEM
-    // ==================================================
+    // ==============================
 
     private void removeItem() {
 
@@ -749,7 +1058,7 @@ public class PurchaseManagementFrame extends JFrame {
 
         if (row == -1) {
 
-            message(
+            warning(
                     "Please select an item."
             );
 
@@ -763,6 +1072,10 @@ public class PurchaseManagementFrame extends JFrame {
         calculateTotal();
     }
 
+    // ==============================
+    // TOTAL
+    // ==============================
+
     private void calculateTotal() {
 
         BigDecimal total =
@@ -770,8 +1083,7 @@ public class PurchaseManagementFrame extends JFrame {
 
         for (
                 int i = 0;
-                i < itemTableModel
-                        .getRowCount();
+                i < itemTableModel.getRowCount();
                 i++
         ) {
 
@@ -793,9 +1105,9 @@ public class PurchaseManagementFrame extends JFrame {
         );
     }
 
-    // ==================================================
+    // ==============================
     // SAVE PURCHASE
-    // ==================================================
+    // ==============================
 
     private void savePurchase() {
 
@@ -805,7 +1117,7 @@ public class PurchaseManagementFrame extends JFrame {
                         == null
         ) {
 
-            message(
+            warning(
                     "Please select a supplier."
             );
 
@@ -818,7 +1130,7 @@ public class PurchaseManagementFrame extends JFrame {
                         == 0
         ) {
 
-            message(
+            warning(
                     "Add at least one product."
             );
 
@@ -846,8 +1158,9 @@ public class PurchaseManagementFrame extends JFrame {
                 supplierId
         );
 
+        // REAL LOGGED-IN USER
         purchase.setUserId(
-                userId
+                loggedInUserId
         );
 
         purchase.setTotalAmount(
@@ -866,8 +1179,7 @@ public class PurchaseManagementFrame extends JFrame {
 
         for (
                 int i = 0;
-                i < itemTableModel
-                        .getRowCount();
+                i < itemTableModel.getRowCount();
                 i++
         ) {
 
@@ -919,8 +1231,11 @@ public class PurchaseManagementFrame extends JFrame {
 
         if (success) {
 
-            message(
-                    "Purchase saved as PENDING."
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Purchase saved as PENDING.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
             );
 
             clearPurchase();
@@ -928,29 +1243,30 @@ public class PurchaseManagementFrame extends JFrame {
 
         } else {
 
-            message(
-                    "Purchase could not be saved."
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Purchase could not be saved.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
-    // ==================================================
-    // PURCHASE HISTORY
-    // ==================================================
+    // ==============================
+    // LOAD PURCHASES
+    // ==============================
 
     private void loadPurchases() {
 
-        purchaseTableModel
-                .setRowCount(0);
+        purchaseTableModel.setRowCount(
+                0
+        );
 
         List<String[]> purchases =
                 purchaseDAO
                         .getAllPurchases();
 
-        for (
-                String[] purchase
-                : purchases
-        ) {
+        for (String[] purchase : purchases) {
 
             purchaseTableModel.addRow(
                     purchase
@@ -958,9 +1274,9 @@ public class PurchaseManagementFrame extends JFrame {
         }
     }
 
-    // ==================================================
+    // ==============================
     // CONFIRM
-    // ==================================================
+    // ==============================
 
     private void confirmPurchase() {
 
@@ -970,7 +1286,7 @@ public class PurchaseManagementFrame extends JFrame {
 
         if (row == -1) {
 
-            message(
+            warning(
                     "Please select a purchase."
             );
 
@@ -992,7 +1308,7 @@ public class PurchaseManagementFrame extends JFrame {
                         )
         ) {
 
-            message(
+            warning(
                     "Only PENDING purchases can be confirmed."
             );
 
@@ -1010,20 +1326,18 @@ public class PurchaseManagementFrame extends JFrame {
                 );
 
         int confirm =
-                JOptionPane
-                        .showConfirmDialog(
-                                this,
-                                "Confirm this purchase?\n"
-                                        + "Product stock will be increased.",
-                                "Confirm Purchase",
-                                JOptionPane.YES_NO_OPTION
-                        );
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Confirm this purchase?\n"
+                                + "Product stock will be increased.",
+                        "Confirm Purchase",
+                        JOptionPane.YES_NO_OPTION
+                );
 
         if (
                 confirm
                         != JOptionPane.YES_OPTION
         ) {
-
             return;
         }
 
@@ -1034,8 +1348,11 @@ public class PurchaseManagementFrame extends JFrame {
                         )
         ) {
 
-            message(
-                    "Purchase confirmed and inventory updated."
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Purchase confirmed and inventory updated.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
             );
 
             loadPurchases();
@@ -1043,15 +1360,18 @@ public class PurchaseManagementFrame extends JFrame {
 
         } else {
 
-            message(
-                    "Purchase could not be confirmed."
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Purchase could not be confirmed.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
-    // ==================================================
+    // ==============================
     // CANCEL
-    // ==================================================
+    // ==============================
 
     private void cancelPurchase() {
 
@@ -1061,7 +1381,7 @@ public class PurchaseManagementFrame extends JFrame {
 
         if (row == -1) {
 
-            message(
+            warning(
                     "Please select a purchase."
             );
 
@@ -1083,7 +1403,7 @@ public class PurchaseManagementFrame extends JFrame {
                         )
         ) {
 
-            message(
+            warning(
                     "Only PENDING purchases can be cancelled."
             );
 
@@ -1101,19 +1421,17 @@ public class PurchaseManagementFrame extends JFrame {
                 );
 
         int confirm =
-                JOptionPane
-                        .showConfirmDialog(
-                                this,
-                                "Cancel this purchase?",
-                                "Cancel Purchase",
-                                JOptionPane.YES_NO_OPTION
-                        );
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Cancel this purchase?",
+                        "Cancel Purchase",
+                        JOptionPane.YES_NO_OPTION
+                );
 
         if (
                 confirm
                         != JOptionPane.YES_OPTION
         ) {
-
             return;
         }
 
@@ -1124,32 +1442,41 @@ public class PurchaseManagementFrame extends JFrame {
                         )
         ) {
 
-            message(
-                    "Purchase cancelled."
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Purchase cancelled.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
             );
 
             loadPurchases();
 
         } else {
 
-            message(
-                    "Purchase could not be cancelled."
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Purchase could not be cancelled.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
+    // ==============================
+    // CLEAR
+    // ==============================
+
     private void clearPurchase() {
 
-        itemTableModel
-                .setRowCount(0);
+        itemTableModel.setRowCount(
+                0
+        );
 
-        quantityField
-                .setText("");
+        quantityField.setText("");
 
-        totalField
-                .setText(
-                        "0.00"
-                );
+        totalField.setText(
+                "0.00"
+        );
 
         if (
                 productComboBox
@@ -1162,25 +1489,136 @@ public class PurchaseManagementFrame extends JFrame {
                             0
                     );
         }
+
+        itemTable.clearSelection();
     }
 
-    private void message(
-            String text
+    // ==============================
+    // TABLE STYLE
+    // ==============================
+
+    private JTable createStyledTable(
+            DefaultTableModel model
+    ) {
+
+        JTable table =
+                new JTable(model);
+
+        table.setRowHeight(28);
+
+        table.setGridColor(
+                new Color(
+                        230, 233, 238
+                )
+        );
+
+        table.setSelectionMode(
+                ListSelectionModel
+                        .SINGLE_SELECTION
+        );
+
+        table
+                .getTableHeader()
+                .setBackground(
+                        DARK_BLUE
+                );
+
+        table
+                .getTableHeader()
+                .setForeground(
+                        Color.WHITE
+                );
+
+        table
+                .getTableHeader()
+                .setFont(
+                        new Font(
+                                "Arial",
+                                Font.BOLD,
+                                12
+                        )
+                );
+
+        table
+                .getTableHeader()
+                .setPreferredSize(
+                        new Dimension(
+                                0,
+                                32
+                        )
+                );
+
+        table
+                .getTableHeader()
+                .setReorderingAllowed(
+                        false
+                );
+
+        return table;
+    }
+
+    // ==============================
+    // BUTTON STYLE
+    // ==============================
+
+    private JButton createButton(
+            String text,
+            Color background,
+            Color foreground
+    ) {
+
+        JButton button =
+                new JButton(text);
+
+        button.setBackground(
+                background
+        );
+
+        button.setForeground(
+                foreground
+        );
+
+        button.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        button.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                background.darker()
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                8, 14, 8, 14
+                        )
+                )
+        );
+
+        return button;
+    }
+
+    private void warning(
+            String message
     ) {
 
         JOptionPane.showMessageDialog(
                 this,
-                text
-        );
-    }
-
-    public static void main(
-            String[] args
-    ) {
-
-        SwingUtilities.invokeLater(
-                () -> new PurchaseManagementFrame()
-                        .setVisible(true)
+                message,
+                "Validation",
+                JOptionPane.WARNING_MESSAGE
         );
     }
 }

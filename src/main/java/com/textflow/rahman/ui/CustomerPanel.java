@@ -1,541 +1,1066 @@
 package com.textflow.rahman.ui;
 
+import com.textflow.rahman.dao.CustomerDAO;
 import com.textflow.rahman.model.Customer;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CustomerPanel extends JPanel {
 
-    // Customer data stored temporarily in memory
-    private final List<Customer> customers = new ArrayList<>();
+    // ==================================================
+    // DAO
+    // ==================================================
 
-    // ID for the next customer
-    private int nextCustomerId = 1;
+    private final CustomerDAO customerDAO;
 
-    // Input fields
+    // ==================================================
+    // FIELDS
+    // ==================================================
+
     private JTextField txtName;
     private JTextField txtContact;
-
     private JTextField txtAddress;
     private JTextField txtLoyalty;
     private JTextField txtSearch;
 
-    // Table
     private JTable customerTable;
     private DefaultTableModel tableModel;
 
-    // Buttons
-    private JButton btnAdd;
-    private JButton btnUpdate;
-    private JButton btnDelete;
-    private JButton btnClear;
-    private JButton btnDeactivate;
+    // ==================================================
+    // COLORS
+    // ==================================================
+
+    private final Color DARK_BLUE =
+            new Color(31, 60, 136);
+
+    private final Color LIGHT_BACKGROUND =
+            new Color(245, 247, 250);
+
+    private final Color CARD_BORDER =
+            new Color(220, 225, 230);
+
+    // ==================================================
+    // CONSTRUCTOR
+    // ==================================================
 
     public CustomerPanel() {
 
-        setLayout(new BorderLayout(15, 15));
-        setBackground(new Color(245, 247, 250));
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        customerDAO =
+                new CustomerDAO();
 
-        createHeader();
-        createForm();
-        createTable();
-
-        // Add a couple of sample customers
-        addSampleCustomers();
-
-        refreshTable();
-    }
-
-    // ---------------------------------------------------------
-    // HEADER
-    // ---------------------------------------------------------
-
-    private void createHeader() {
-
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(245, 247, 250));
-
-        JLabel titleLabel = new JLabel("Customer Management");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 26));
-
-        JLabel subtitleLabel = new JLabel(
-                "Add, view, update, search and manage customers"
+        setLayout(
+                new BorderLayout()
         );
-        subtitleLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
-        JPanel titlePanel = new JPanel();
-        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
-        titlePanel.setBackground(new Color(245, 247, 250));
+        setBackground(
+                LIGHT_BACKGROUND
+        );
 
-        titlePanel.add(titleLabel);
-        titlePanel.add(Box.createVerticalStrut(5));
-        titlePanel.add(subtitleLabel);
+        createUI();
 
-        headerPanel.add(titlePanel, BorderLayout.WEST);
-
-        add(headerPanel, BorderLayout.NORTH);
+        loadCustomers();
     }
 
-    // ---------------------------------------------------------
-    // CUSTOMER FORM
-    // ---------------------------------------------------------
+    // ==================================================
+    // CREATE UI
+    // ==================================================
 
-    private void createForm() {
+    private void createUI() {
 
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(new Color(220, 224, 230)),
-                        BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        // ==================================================
+        // HEADER
+        // ==================================================
+
+        JPanel headerPanel =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        headerPanel.setBackground(
+                DARK_BLUE
+        );
+
+        headerPanel.setBorder(
+                new EmptyBorder(
+                        17,
+                        25,
+                        17,
+                        25
                 )
         );
 
-        GridBagConstraints gbc = new GridBagConstraints();
+        JLabel titleLabel =
+                new JLabel(
+                        "TEXTFLOW  |  Customer Management"
+                );
 
-        gbc.insets = new Insets(6, 8, 6, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        titleLabel.setForeground(
+                Color.WHITE
+        );
 
-        // Customer Name
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
+        titleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        23
+                )
+        );
 
-        formPanel.add(new JLabel("Customer Name"), gbc);
+        headerPanel.add(
+                titleLabel,
+                BorderLayout.WEST
+        );
 
-        txtName = new JTextField();
-        gbc.gridx = 1;
-        gbc.weightx = 1;
+        add(
+                headerPanel,
+                BorderLayout.NORTH
+        );
 
-        formPanel.add(txtName, gbc);
+        // ==================================================
+        // CONTENT
+        // ==================================================
 
-        // Contact Number
-        gbc.gridx = 2;
-        gbc.weightx = 0;
+        JPanel contentPanel =
+                new JPanel(
+                        new BorderLayout(
+                                15,
+                                15
+                        )
+                );
 
-        formPanel.add(new JLabel("Contact Number"), gbc);
+        contentPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
 
-        txtContact = new JTextField();
-        gbc.gridx = 3;
-        gbc.weightx = 1;
+        contentPanel.setBorder(
+                new EmptyBorder(
+                        20,
+                        20,
+                        20,
+                        20
+                )
+        );
 
-        formPanel.add(txtContact, gbc);
+        // ==================================================
+        // FORM CARD
+        // ==================================================
 
-        // Address
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0;
+        JPanel formCard =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                15
+                        )
+                );
 
-        formPanel.add(new JLabel("Address"), gbc);
+        formCard.setBackground(
+                Color.WHITE
+        );
 
-        txtAddress = new JTextField();
-        gbc.gridx = 1;
-        gbc.weightx = 1;
+        formCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                18,
+                                20,
+                                18,
+                                20
+                        )
+                )
+        );
 
-        formPanel.add(txtAddress, gbc);
+        JLabel formTitle =
+                new JLabel(
+                        "Customer Details"
+                );
 
-        // Loyalty Points
-        gbc.gridx = 2;
-        gbc.weightx = 0;
+        formTitle.setForeground(
+                DARK_BLUE
+        );
 
-        formPanel.add(new JLabel("Loyalty Points"), gbc);
+        formTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        18
+                )
+        );
 
-        txtLoyalty = new JTextField();
-        gbc.gridx = 3;
-        gbc.weightx = 1;
+        formCard.add(
+                formTitle,
+                BorderLayout.NORTH
+        );
 
-        formPanel.add(txtLoyalty, gbc);
+        // ==================================================
+        // FIELDS
+        // ==================================================
 
-        // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
-        buttonPanel.setBackground(Color.WHITE);
+        txtName =
+                new JTextField();
 
-        btnAdd = new JButton("ADD");
-        btnUpdate = new JButton("UPDATE");
-        btnDelete = new JButton("DELETE");
-        btnDeactivate = new JButton("DEACTIVATE");
-        btnClear = new JButton("CLEAR");
+        txtContact =
+                new JTextField();
 
-        buttonPanel.add(btnAdd);
-        buttonPanel.add(btnUpdate);
-        buttonPanel.add(btnDelete);
-        buttonPanel.add(btnDeactivate);
-        buttonPanel.add(btnClear);
+        txtAddress =
+                new JTextField();
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 4;
-        gbc.weightx = 1;
+        txtLoyalty =
+                new JTextField();
 
-        formPanel.add(buttonPanel, gbc);
+        JPanel fieldsPanel =
+                new JPanel(
+                        new GridBagLayout()
+                );
 
-        add(formPanel, BorderLayout.CENTER);
+        fieldsPanel.setOpaque(
+                false
+        );
 
-        // Button actions
-        btnAdd.addActionListener(e -> addCustomer());
-        btnUpdate.addActionListener(e -> updateCustomer());
-        btnDelete.addActionListener(e -> deleteCustomer());
-        btnDeactivate.addActionListener(e -> deactivateCustomer());
-        btnClear.addActionListener(e -> clearForm());
-    }
+        GridBagConstraints gbc =
+                new GridBagConstraints();
 
-    // ---------------------------------------------------------
-    // CUSTOMER TABLE
-    // ---------------------------------------------------------
+        gbc.insets =
+                new Insets(
+                        7,
+                        8,
+                        7,
+                        8
+                );
 
-    private void createTable() {
+        gbc.anchor =
+                GridBagConstraints.WEST;
 
-        JPanel tablePanel = new JPanel(new BorderLayout(10, 10));
-        tablePanel.setBackground(new Color(245, 247, 250));
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                0,
+                0,
+                "Customer Name:",
+                txtName
+        );
 
-        // Search section
-        JPanel searchPanel = new JPanel(new BorderLayout(10, 10));
-        searchPanel.setBackground(new Color(245, 247, 250));
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                0,
+                2,
+                "Contact Number:",
+                txtContact
+        );
 
-        JLabel searchLabel = new JLabel("Search:");
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                1,
+                0,
+                "Address:",
+                txtAddress
+        );
 
-        txtSearch = new JTextField();
-        txtSearch.setPreferredSize(new Dimension(250, 32));
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                1,
+                2,
+                "Loyalty Points:",
+                txtLoyalty
+        );
 
-        JButton btnSearch = new JButton("SEARCH");
+        formCard.add(
+                fieldsPanel,
+                BorderLayout.CENTER
+        );
 
-        searchPanel.add(searchLabel, BorderLayout.WEST);
-        searchPanel.add(txtSearch, BorderLayout.CENTER);
-        searchPanel.add(btnSearch, BorderLayout.EAST);
+        // ==================================================
+        // BUTTONS
+        // ==================================================
 
-        tablePanel.add(searchPanel, BorderLayout.NORTH);
+        JButton btnAdd =
+                createButton(
+                        "Add Customer",
+                        new Color(
+                                220,
+                                245,
+                                228
+                        ),
+                        new Color(
+                                34,
+                                100,
+                                58
+                        )
+                );
 
-        // Table columns
-        String[] columns = {
-                "ID",
-                "Customer Name",
-                "Contact Number",
-                "Address",
-                "Loyalty Points",
-                "Status"
-        };
+        JButton btnUpdate =
+                createButton(
+                        "Update Customer",
+                        new Color(
+                                219,
+                                234,
+                                254
+                        ),
+                        new Color(
+                                30,
+                                64,
+                                175
+                        )
+                );
 
-        tableModel = new DefaultTableModel(columns, 0) {
+        JButton btnDeactivate =
+                createButton(
+                        "Deactivate",
+                        new Color(
+                                254,
+                                243,
+                                199
+                        ),
+                        new Color(
+                                146,
+                                64,
+                                14
+                        )
+                );
 
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+        JButton btnDelete =
+                createButton(
+                        "Delete",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                153,
+                                27,
+                                27
+                        )
+                );
 
-        customerTable = new JTable(tableModel);
+        JButton btnClear =
+                createButton(
+                        "Clear",
+                        new Color(
+                                243,
+                                244,
+                                246
+                        ),
+                        new Color(
+                                55,
+                                65,
+                                81
+                        )
+                );
 
-        customerTable.setRowHeight(28);
-        customerTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        customerTable.getTableHeader().setFont(
-                new Font("SansSerif", Font.BOLD, 13)
+        JPanel buttonPanel =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                10,
+                                3
+                        )
+                );
+
+        buttonPanel.setOpaque(
+                false
+        );
+
+        buttonPanel.add(
+                btnAdd
+        );
+
+        buttonPanel.add(
+                btnUpdate
+        );
+
+        buttonPanel.add(
+                btnDeactivate
+        );
+
+        buttonPanel.add(
+                btnDelete
+        );
+
+        buttonPanel.add(
+                btnClear
+        );
+
+        formCard.add(
+                buttonPanel,
+                BorderLayout.SOUTH
+        );
+
+        contentPanel.add(
+                formCard,
+                BorderLayout.NORTH
+        );
+
+        // ==================================================
+        // CUSTOMER TABLE CARD
+        // ==================================================
+
+        JPanel tableCard =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        tableCard.setBackground(
+                Color.WHITE
+        );
+
+        tableCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                15,
+                                15,
+                                15,
+                                15
+                        )
+                )
+        );
+
+        // ==================================================
+        // SEARCH
+        // ==================================================
+
+        JPanel searchPanel =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                0
+                        )
+                );
+
+        searchPanel.setOpaque(
+                false
+        );
+
+        JLabel tableTitle =
+                new JLabel(
+                        "Customer Records"
+                );
+
+        tableTitle.setForeground(
+                DARK_BLUE
+        );
+
+        tableTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        17
+                )
+        );
+
+        JPanel searchControls =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.RIGHT,
+                                8,
+                                0
+                        )
+                );
+
+        searchControls.setOpaque(
+                false
+        );
+
+        JLabel searchLabel =
+                new JLabel(
+                        "Search:"
+                );
+
+        searchLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        txtSearch =
+                new JTextField(
+                        18
+                );
+
+        txtSearch.setPreferredSize(
+                new Dimension(
+                        220,
+                        34
+                )
+        );
+
+        JButton searchButton =
+                createButton(
+                        "Search",
+                        new Color(
+                                254,
+                                243,
+                                199
+                        ),
+                        new Color(
+                                146,
+                                64,
+                                14
+                        )
+                );
+
+        JButton refreshButton =
+                createButton(
+                        "Refresh",
+                        new Color(
+                                204,
+                                251,
+                                241
+                        ),
+                        new Color(
+                                17,
+                                94,
+                                89
+                        )
+                );
+
+        searchControls.add(
+                searchLabel
+        );
+
+        searchControls.add(
+                txtSearch
+        );
+
+        searchControls.add(
+                searchButton
+        );
+
+        searchControls.add(
+                refreshButton
+        );
+
+        searchPanel.add(
+                tableTitle,
+                BorderLayout.WEST
+        );
+
+        searchPanel.add(
+                searchControls,
+                BorderLayout.EAST
+        );
+
+        tableCard.add(
+                searchPanel,
+                BorderLayout.NORTH
+        );
+
+        // ==================================================
+        // TABLE
+        // ==================================================
+
+        tableModel =
+                new DefaultTableModel(
+                        new String[]{
+                                "ID",
+                                "Customer Name",
+                                "Contact Number",
+                                "Address",
+                                "Loyalty Points",
+                                "Status"
+                        },
+                        0
+                ) {
+
+                    @Override
+                    public boolean isCellEditable(
+                            int row,
+                            int column
+                    ) {
+
+                        return false;
+                    }
+                };
+
+        customerTable =
+                new JTable(
+                        tableModel
+                );
+
+        customerTable.setRowHeight(
+                28
         );
 
         customerTable.setSelectionMode(
-                ListSelectionModel.SINGLE_SELECTION
+                ListSelectionModel
+                        .SINGLE_SELECTION
         );
 
-        JScrollPane scrollPane = new JScrollPane(customerTable);
+        customerTable.setGridColor(
+                new Color(
+                        230,
+                        233,
+                        238
+                )
+        );
 
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        customerTable.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        12
+                )
+        );
 
-        // Search button
-        btnSearch.addActionListener(e -> searchCustomers());
+        customerTable
+                .getTableHeader()
+                .setBackground(
+                        DARK_BLUE
+                );
 
-        // Pressing Enter in search field also searches
-        txtSearch.addActionListener(e -> searchCustomers());
+        customerTable
+                .getTableHeader()
+                .setForeground(
+                        Color.WHITE
+                );
 
-        // Live search while typing
-        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+        customerTable
+                .getTableHeader()
+                .setFont(
+                        new Font(
+                                "Arial",
+                                Font.BOLD,
+                                12
+                        )
+                );
 
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                searchCustomers();
-            }
+        customerTable
+                .getTableHeader()
+                .setPreferredSize(
+                        new Dimension(
+                                0,
+                                32
+                        )
+                );
 
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                searchCustomers();
-            }
+        customerTable
+                .getTableHeader()
+                .setReorderingAllowed(
+                        false
+                );
 
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                searchCustomers();
-            }
-        });
+        JScrollPane scrollPane =
+                new JScrollPane(
+                        customerTable
+                );
 
-        // When a table row is selected, load its data into the form
-        customerTable.getSelectionModel().addListSelectionListener(e -> {
+        scrollPane.setBorder(
+                BorderFactory.createLineBorder(
+                        CARD_BORDER
+                )
+        );
 
-            if (!e.getValueIsAdjusting()) {
-                loadSelectedCustomer();
-            }
-        });
+        tableCard.add(
+                scrollPane,
+                BorderLayout.CENTER
+        );
 
-        add(tablePanel, BorderLayout.SOUTH);
+        contentPanel.add(
+                tableCard,
+                BorderLayout.CENTER
+        );
 
-        // Give the table more space
-        tablePanel.setPreferredSize(new Dimension(0, 320));
+        add(
+                contentPanel,
+                BorderLayout.CENTER
+        );
+
+        // ==================================================
+        // ACTIONS
+        // ==================================================
+
+        btnAdd.addActionListener(
+                e -> addCustomer()
+        );
+
+        btnUpdate.addActionListener(
+                e -> updateCustomer()
+        );
+
+        btnDeactivate.addActionListener(
+                e -> deactivateCustomer()
+        );
+
+        btnDelete.addActionListener(
+                e -> deleteCustomer()
+        );
+
+        btnClear.addActionListener(
+                e -> clearForm()
+        );
+
+        searchButton.addActionListener(
+                e -> searchCustomers()
+        );
+
+        refreshButton.addActionListener(
+                e -> {
+                    txtSearch.setText("");
+                    loadCustomers();
+                }
+        );
+
+        txtSearch.addActionListener(
+                e -> searchCustomers()
+        );
+
+        txtSearch
+                .getDocument()
+                .addDocumentListener(
+                        new DocumentListener() {
+
+                            @Override
+                            public void insertUpdate(
+                                    DocumentEvent e
+                            ) {
+
+                                searchCustomers();
+                            }
+
+                            @Override
+                            public void removeUpdate(
+                                    DocumentEvent e
+                            ) {
+
+                                searchCustomers();
+                            }
+
+                            @Override
+                            public void changedUpdate(
+                                    DocumentEvent e
+                            ) {
+
+                                searchCustomers();
+                            }
+                        }
+                );
+
+        customerTable
+                .getSelectionModel()
+                .addListSelectionListener(
+                        e -> {
+
+                            if (
+                                    !e.getValueIsAdjusting()
+                            ) {
+
+                                loadSelectedCustomer();
+                            }
+                        }
+                );
     }
 
-    // ---------------------------------------------------------
-    // CREATE
-    // ---------------------------------------------------------
+    // ==================================================
+    // FORM ROW
+    // ==================================================
+
+    private void addFormRow(
+            JPanel panel,
+            GridBagConstraints gbc,
+            int row,
+            int startColumn,
+            String labelText,
+            Component component
+    ) {
+
+        gbc.gridx =
+                startColumn;
+
+        gbc.gridy =
+                row;
+
+        gbc.weightx =
+                0;
+
+        gbc.fill =
+                GridBagConstraints.NONE;
+
+        JLabel label =
+                new JLabel(
+                        labelText
+                );
+
+        label.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        label.setPreferredSize(
+                new Dimension(
+                        120,
+                        30
+                )
+        );
+
+        panel.add(
+                label,
+                gbc
+        );
+
+        gbc.gridx =
+                startColumn + 1;
+
+        gbc.weightx =
+                1;
+
+        gbc.fill =
+                GridBagConstraints.HORIZONTAL;
+
+        if (
+                component instanceof JComponent
+        ) {
+
+            ((JComponent) component)
+                    .setPreferredSize(
+                            new Dimension(
+                                    280,
+                                    34
+                            )
+                    );
+        }
+
+        panel.add(
+                component,
+                gbc
+        );
+    }
+
+    // ==================================================
+    // ADD CUSTOMER
+    // ==================================================
 
     private void addCustomer() {
 
-        String name = txtName.getText().trim();
-        String contact = txtContact.getText().trim();
-        String address = txtAddress.getText().trim();
-        String loyaltyText = txtLoyalty.getText().trim();
+        Customer customer =
+                readCustomerForm();
 
-        if (name.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Please enter the customer name.",
-                    "Validation Error",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (
+                customer == null
+        ) {
             return;
         }
 
-        int loyaltyPoints;
-
-        try {
-
-            loyaltyPoints = loyaltyText.isEmpty()
-                    ? 0
-                    : Integer.parseInt(loyaltyText);
-
-            if (loyaltyPoints < 0) {
-                throw new NumberFormatException();
-            }
-
-        } catch (NumberFormatException ex) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Loyalty points must be a valid positive number.",
-                    "Validation Error",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        Customer customer = new Customer(
-                nextCustomerId++,
-                name,
-                contact,
-                address,
-                loyaltyPoints,
+        customer.setStatus(
                 "ACTIVE"
         );
 
-        customers.add(customer);
+        boolean success =
+                customerDAO.addCustomer(
+                        customer
+                );
 
-        refreshTable();
-        clearForm();
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Customer added successfully!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    // ---------------------------------------------------------
-    // READ
-    // ---------------------------------------------------------
-
-    private void refreshTable() {
-
-        tableModel.setRowCount(0);
-
-        for (Customer customer : customers) {
-
-            tableModel.addRow(new Object[]{
-                    customer.getCustomerId(),
-                    customer.getCustomerName(),
-                    customer.getContactNumber(),
-                    customer.getAddress(),
-                    customer.getLoyaltyPoints(),
-                    customer.getStatus()
-            });
-        }
-    }
-
-    // ---------------------------------------------------------
-    // UPDATE
-    // ---------------------------------------------------------
-
-    private void updateCustomer() {
-
-        int selectedRow = customerTable.getSelectedRow();
-
-        if (selectedRow == -1) {
+        if (
+                success
+        ) {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Please select a customer to update.",
-                    "No Customer Selected",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        int customerId = (int) tableModel.getValueAt(selectedRow, 0);
-
-        Customer customer = findCustomerById(customerId);
-
-        if (customer == null) {
-            return;
-        }
-
-        String name = txtName.getText().trim();
-        String contact = txtContact.getText().trim();
-        String address = txtAddress.getText().trim();
-
-        if (name.isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Customer name cannot be empty.",
-                    "Validation Error",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        int loyaltyPoints;
-
-        try {
-
-            loyaltyPoints = txtLoyalty.getText().trim().isEmpty()
-                    ? 0
-                    : Integer.parseInt(txtLoyalty.getText().trim());
-
-            if (loyaltyPoints < 0) {
-                throw new NumberFormatException();
-            }
-
-        } catch (NumberFormatException ex) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Loyalty points must be a valid positive number.",
-                    "Validation Error",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        customer.setCustomerName(name);
-        customer.setContactNumber(contact);
-        customer.setAddress(address);
-        customer.setLoyaltyPoints(loyaltyPoints);
-
-        refreshTable();
-        clearForm();
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Customer updated successfully!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    // ---------------------------------------------------------
-    // DELETE
-    // ---------------------------------------------------------
-
-    private void deleteCustomer() {
-
-        int selectedRow = customerTable.getSelectedRow();
-
-        if (selectedRow == -1) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Please select a customer to delete.",
-                    "No Customer Selected",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        int customerId = (int) tableModel.getValueAt(selectedRow, 0);
-
-        int confirmation = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to delete this customer?",
-                "Confirm Delete",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (confirmation == JOptionPane.YES_OPTION) {
-
-            Customer customer = findCustomerById(customerId);
-
-            if (customer != null) {
-                customers.remove(customer);
-            }
-
-            refreshTable();
-            clearForm();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Customer deleted successfully!",
+                    "Customer added successfully!\n"
+                            + "Customer ID: "
+                            + customer.getCustomerId(),
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE
             );
-        }
-    }
 
-    // ---------------------------------------------------------
-    // DEACTIVATE
-    // ---------------------------------------------------------
+            clearForm();
+            loadCustomers();
 
-    private void deactivateCustomer() {
-
-        int selectedRow = customerTable.getSelectedRow();
-
-        if (selectedRow == -1) {
+        } else {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Please select a customer to deactivate.",
-                    "No Customer Selected",
-                    JOptionPane.WARNING_MESSAGE
+                    "Customer could not be added.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    // ==================================================
+    // UPDATE CUSTOMER
+    // ==================================================
+
+    private void updateCustomer() {
+
+        int row =
+                customerTable
+                        .getSelectedRow();
+
+        if (
+                row == -1
+        ) {
+
+            warning(
+                    "Please select a customer to update."
             );
 
             return;
         }
 
-        int customerId = (int) tableModel.getValueAt(selectedRow, 0);
+        Customer customer =
+                readCustomerForm();
 
-        Customer customer = findCustomerById(customerId);
+        if (
+                customer == null
+        ) {
+            return;
+        }
 
-        if (customer != null) {
+        customer.setCustomerId(
+                Integer.parseInt(
+                        tableModel
+                                .getValueAt(
+                                        row,
+                                        0
+                                )
+                                .toString()
+                )
+        );
 
-            customer.setStatus("INACTIVE");
+        customer.setStatus(
+                tableModel
+                        .getValueAt(
+                                row,
+                                5
+                        )
+                        .toString()
+        );
 
-            refreshTable();
+        boolean success =
+                customerDAO.updateCustomer(
+                        customer
+                );
+
+        if (
+                success
+        ) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Customer updated successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
             clearForm();
+            loadCustomers();
+
+        } else {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Customer could not be updated.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    // ==================================================
+    // DEACTIVATE
+    // ==================================================
+
+    private void deactivateCustomer() {
+
+        int row =
+                customerTable
+                        .getSelectedRow();
+
+        if (
+                row == -1
+        ) {
+
+            warning(
+                    "Please select a customer to deactivate."
+            );
+
+            return;
+        }
+
+        String status =
+                tableModel
+                        .getValueAt(
+                                row,
+                                5
+                        )
+                        .toString();
+
+        if (
+                "INACTIVE"
+                        .equalsIgnoreCase(
+                                status
+                        )
+        ) {
+
+            warning(
+                    "This customer is already inactive."
+            );
+
+            return;
+        }
+
+        int customerId =
+                Integer.parseInt(
+                        tableModel
+                                .getValueAt(
+                                        row,
+                                        0
+                                )
+                                .toString()
+                );
+
+        String name =
+                tableModel
+                        .getValueAt(
+                                row,
+                                1
+                        )
+                        .toString();
+
+        int confirm =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Deactivate customer: "
+                                + name
+                                + "?",
+                        "Confirm Deactivation",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+        if (
+                confirm
+                        != JOptionPane.YES_OPTION
+        ) {
+            return;
+        }
+
+        if (
+                customerDAO
+                        .deactivateCustomer(
+                                customerId
+                        )
+        ) {
 
             JOptionPane.showMessageDialog(
                     this,
@@ -543,92 +1068,340 @@ public class CustomerPanel extends JPanel {
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE
             );
+
+            clearForm();
+            loadCustomers();
+
+        } else {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Customer could not be deactivated.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
-    // ---------------------------------------------------------
+    // ==================================================
+    // DELETE
+    // ==================================================
+
+    private void deleteCustomer() {
+
+        int row =
+                customerTable
+                        .getSelectedRow();
+
+        if (
+                row == -1
+        ) {
+
+            warning(
+                    "Please select a customer to delete."
+            );
+
+            return;
+        }
+
+        int customerId =
+                Integer.parseInt(
+                        tableModel
+                                .getValueAt(
+                                        row,
+                                        0
+                                )
+                                .toString()
+                );
+
+        String name =
+                tableModel
+                        .getValueAt(
+                                row,
+                                1
+                        )
+                        .toString();
+
+        int confirm =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Permanently delete customer: "
+                                + name
+                                + "?\n\n"
+                                + "If this customer has sales records, "
+                                + "the database may prevent deletion.",
+                        "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+        if (
+                confirm
+                        != JOptionPane.YES_OPTION
+        ) {
+
+            return;
+        }
+
+        boolean success =
+                customerDAO.deleteCustomer(
+                        customerId
+                );
+
+        if (
+                success
+        ) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Customer deleted successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            clearForm();
+            loadCustomers();
+
+        } else {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Customer could not be deleted.\n\n"
+                            + "If this customer has previous sales, "
+                            + "use Deactivate instead.",
+                    "Delete Failed",
+                    JOptionPane.WARNING_MESSAGE
+            );
+        }
+    }
+
+    // ==================================================
     // SEARCH
-    // ---------------------------------------------------------
+    // ==================================================
 
     private void searchCustomers() {
 
-        String keyword = txtSearch.getText()
-                .trim()
-                .toLowerCase();
+        String keyword =
+                txtSearch
+                        .getText()
+                        .trim();
 
-        tableModel.setRowCount(0);
+        if (
+                keyword.isEmpty()
+        ) {
 
-        for (Customer customer : customers) {
+            loadCustomers();
 
-            boolean matches =
-                    String.valueOf(customer.getCustomerId()).contains(keyword)
-                            || customer.getCustomerName().toLowerCase().contains(keyword)
-                            || customer.getContactNumber().toLowerCase().contains(keyword)
-                            || customer.getAddress().toLowerCase().contains(keyword)
-                            || customer.getStatus().toLowerCase().contains(keyword);
+            return;
+        }
 
-            if (matches) {
+        List<Customer> customers =
+                customerDAO
+                        .searchCustomers(
+                                keyword
+                        );
 
-                tableModel.addRow(new Object[]{
-                        customer.getCustomerId(),
-                        customer.getCustomerName(),
-                        customer.getContactNumber(),
-                        customer.getAddress(),
-                        customer.getLoyaltyPoints(),
-                        customer.getStatus()
-                });
-            }
+        displayCustomers(
+                customers
+        );
+    }
+
+    // ==================================================
+    // LOAD ALL
+    // ==================================================
+
+    private void loadCustomers() {
+
+        List<Customer> customers =
+                customerDAO
+                        .getAllCustomers();
+
+        displayCustomers(
+                customers
+        );
+    }
+
+    // ==================================================
+    // DISPLAY
+    // ==================================================
+
+    private void displayCustomers(
+            List<Customer> customers
+    ) {
+
+        tableModel.setRowCount(
+                0
+        );
+
+        for (
+                Customer customer
+                : customers
+        ) {
+
+            tableModel.addRow(
+                    new Object[]{
+                            customer.getCustomerId(),
+                            customer.getCustomerName(),
+                            customer.getContactNumber(),
+                            customer.getAddress(),
+                            customer.getLoyaltyPoints(),
+                            customer.getStatus()
+                    }
+            );
         }
     }
 
-    // ---------------------------------------------------------
+    // ==================================================
     // LOAD SELECTED CUSTOMER
-    // ---------------------------------------------------------
+    // ==================================================
 
     private void loadSelectedCustomer() {
 
-        int selectedRow = customerTable.getSelectedRow();
+        int row =
+                customerTable
+                        .getSelectedRow();
 
-        if (selectedRow == -1) {
+        if (
+                row == -1
+        ) {
             return;
         }
 
         txtName.setText(
-                tableModel.getValueAt(selectedRow, 1).toString()
+                valueAt(
+                        row,
+                        1
+                )
         );
 
         txtContact.setText(
-                tableModel.getValueAt(selectedRow, 2).toString()
+                valueAt(
+                        row,
+                        2
+                )
         );
 
         txtAddress.setText(
-                tableModel.getValueAt(selectedRow, 3).toString()
+                valueAt(
+                        row,
+                        3
+                )
         );
 
         txtLoyalty.setText(
-                tableModel.getValueAt(selectedRow, 4).toString()
+                valueAt(
+                        row,
+                        4
+                )
         );
     }
 
-    // ---------------------------------------------------------
-    // FIND CUSTOMER
-    // ---------------------------------------------------------
+    // ==================================================
+    // READ FORM
+    // ==================================================
 
-    private Customer findCustomerById(int id) {
+    private Customer readCustomerForm() {
 
-        for (Customer customer : customers) {
+        String name =
+                txtName
+                        .getText()
+                        .trim();
 
-            if (customer.getCustomerId() == id) {
-                return customer;
-            }
+        String contact =
+                txtContact
+                        .getText()
+                        .trim();
+
+        String address =
+                txtAddress
+                        .getText()
+                        .trim();
+
+        String loyaltyText =
+                txtLoyalty
+                        .getText()
+                        .trim();
+
+        if (
+                name.isEmpty()
+        ) {
+
+            warning(
+                    "Customer name is required."
+            );
+
+            return null;
         }
 
-        return null;
+        if (
+                !contact.isEmpty()
+                        &&
+                        !contact.matches(
+                                "\\d{10}"
+                        )
+        ) {
+
+            warning(
+                    "Contact number must contain 10 digits."
+            );
+
+            return null;
+        }
+
+        int loyaltyPoints;
+
+        try {
+
+            loyaltyPoints =
+                    loyaltyText.isEmpty()
+                            ? 0
+                            : Integer.parseInt(
+                            loyaltyText
+                    );
+
+            if (
+                    loyaltyPoints < 0
+            ) {
+
+                throw new NumberFormatException();
+            }
+
+        } catch (
+                NumberFormatException e
+        ) {
+
+            warning(
+                    "Loyalty points must be zero or greater."
+            );
+
+            return null;
+        }
+
+        Customer customer =
+                new Customer();
+
+        customer.setCustomerName(
+                name
+        );
+
+        customer.setContactNumber(
+                contact
+        );
+
+        customer.setAddress(
+                address
+        );
+
+        customer.setLoyaltyPoints(
+                loyaltyPoints
+        );
+
+        return customer;
     }
 
-    // ---------------------------------------------------------
-    // CLEAR FORM
-    // ---------------------------------------------------------
+    // ==================================================
+    // CLEAR
+    // ==================================================
 
     private void clearForm() {
 
@@ -638,34 +1411,110 @@ public class CustomerPanel extends JPanel {
         txtLoyalty.setText("");
 
         customerTable.clearSelection();
+
+        txtName.requestFocus();
     }
 
-    // ---------------------------------------------------------
-    // SAMPLE DATA
-    // ---------------------------------------------------------
+    // ==================================================
+    // VALUE
+    // ==================================================
 
-    private void addSampleCustomers() {
+    private String valueAt(
+            int row,
+            int column
+    ) {
 
-        customers.add(
-                new Customer(
-                        nextCustomerId++,
-                        "Ahmed Perera",
-                        "0771234567",
-                        "Colombo",
-                        120,
-                        "ACTIVE"
+        Object value =
+                tableModel
+                        .getValueAt(
+                                row,
+                                column
+                        );
+
+        return value == null
+                ? ""
+                : value.toString();
+    }
+
+    // ==================================================
+    // BUTTON
+    // ==================================================
+
+    private JButton createButton(
+            String text,
+            Color background,
+            Color foreground
+    ) {
+
+        JButton button =
+                new JButton(
+                        text
+                );
+
+        button.setBackground(
+                background
+        );
+
+        button.setForeground(
+                foreground
+        );
+
+        button.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
                 )
         );
 
-        customers.add(
-                new Customer(
-                        nextCustomerId++,
-                        "Sarah Fernando",
-                        "0719876543",
-                        "Negombo",
-                        250,
-                        "ACTIVE"
+        button.setFocusPainted(
+                false
+        );
+
+        button.setOpaque(
+                true
+        );
+
+        button.setContentAreaFilled(
+                true
+        );
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
                 )
+        );
+
+        button.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                background.darker()
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                8,
+                                14,
+                                8,
+                                14
+                        )
+                )
+        );
+
+        return button;
+    }
+
+    // ==================================================
+    // WARNING
+    // ==================================================
+
+    private void warning(
+            String message
+    ) {
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Validation",
+                JOptionPane.WARNING_MESSAGE
         );
     }
 }
