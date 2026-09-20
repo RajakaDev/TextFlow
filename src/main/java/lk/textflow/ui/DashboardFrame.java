@@ -19,21 +19,54 @@ public class DashboardFrame extends JFrame {
 
     private final User loggedInUser;
 
+    // ==================================================
+    // COLORS
+    // ==================================================
+
     private final Color DARK_BLUE =
             new Color(31, 60, 136);
 
-    private final Color BACKGROUND =
+    private final Color LIGHT_BACKGROUND =
             new Color(245, 247, 250);
 
-    public DashboardFrame(User loggedInUser) {
+    private final Color CARD_BORDER =
+            new Color(220, 225, 230);
 
-        this.loggedInUser = loggedInUser;
+    private final Color TEXT_DARK =
+            new Color(55, 65, 81);
 
-        setTitle("TextFlow - Dashboard");
-        setSize(1100, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public DashboardFrame(
+            User loggedInUser
+    ) {
+
+        this.loggedInUser =
+                loggedInUser;
+
+        setTitle(
+                "TextFlow - Dashboard"
+        );
+
+        setSize(
+                1180,
+                760
+        );
+
+        setMinimumSize(
+                new Dimension(
+                        1000,
+                        650
+                )
+        );
+
+        setDefaultCloseOperation(
+                JFrame.EXIT_ON_CLOSE
+        );
+
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+
+        setLayout(
+                new BorderLayout()
+        );
 
         createHeader();
         createDashboard();
@@ -45,70 +78,180 @@ public class DashboardFrame extends JFrame {
 
     private void createHeader() {
 
-        JPanel header =
-                new JPanel(new BorderLayout());
+        JPanel headerPanel =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-        header.setBackground(DARK_BLUE);
+        headerPanel.setBackground(
+                DARK_BLUE
+        );
 
-        header.setBorder(
+        headerPanel.setBorder(
                 new EmptyBorder(
                         18,
-                        25,
+                        30,
                         18,
-                        25
+                        30
                 )
         );
 
-        JLabel title =
-                new JLabel(
-                        "TEXTFLOW  |  Main Dashboard"
-                );
+        // LEFT SIDE
+        JPanel titlePanel =
+                new JPanel();
 
-        title.setForeground(Color.WHITE);
+        titlePanel.setOpaque(false);
 
-        title.setFont(
-                new Font(
-                        "Arial",
-                        Font.BOLD,
-                        24
+        titlePanel.setLayout(
+                new BoxLayout(
+                        titlePanel,
+                        BoxLayout.Y_AXIS
                 )
         );
 
-        JLabel userLabel =
+        JLabel titleLabel =
                 new JLabel(
-                        loggedInUser.getName()
-                                + "  |  "
-                                + loggedInUser.getRole()
+                        "TEXTFLOW"
                 );
 
-        userLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(
+                Color.WHITE
+        );
 
-        userLabel.setFont(
+        titleLabel.setFont(
                 new Font(
                         "Arial",
                         Font.BOLD,
+                        26
+                )
+        );
+
+        JLabel subtitleLabel =
+                new JLabel(
+                        "Textile Shop Management System"
+                );
+
+        subtitleLabel.setForeground(
+                new Color(
+                        220,
+                        230,
+                        245
+                )
+        );
+
+        subtitleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
                         13
                 )
         );
 
-        header.add(
-                title,
+        titlePanel.add(
+                titleLabel
+        );
+
+        titlePanel.add(
+                Box.createVerticalStrut(
+                        3
+                )
+        );
+
+        titlePanel.add(
+                subtitleLabel
+        );
+
+        // RIGHT SIDE
+        JPanel userPanel =
+                new JPanel();
+
+        userPanel.setOpaque(false);
+
+        userPanel.setLayout(
+                new BoxLayout(
+                        userPanel,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        JLabel userNameLabel =
+                new JLabel(
+                        loggedInUser.getName()
+                );
+
+        userNameLabel.setForeground(
+                Color.WHITE
+        );
+
+        userNameLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
+        );
+
+        userNameLabel.setAlignmentX(
+                Component.RIGHT_ALIGNMENT
+        );
+
+        JLabel roleLabel =
+                new JLabel(
+                        loggedInUser.getRole()
+                );
+
+        roleLabel.setForeground(
+                new Color(
+                        220,
+                        230,
+                        245
+                )
+        );
+
+        roleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        12
+                )
+        );
+
+        roleLabel.setAlignmentX(
+                Component.RIGHT_ALIGNMENT
+        );
+
+        userPanel.add(
+                userNameLabel
+        );
+
+        userPanel.add(
+                Box.createVerticalStrut(
+                        4
+                )
+        );
+
+        userPanel.add(
+                roleLabel
+        );
+
+        headerPanel.add(
+                titlePanel,
                 BorderLayout.WEST
         );
 
-        header.add(
-                userLabel,
+        headerPanel.add(
+                userPanel,
                 BorderLayout.EAST
         );
 
         add(
-                header,
+                headerPanel,
                 BorderLayout.NORTH
         );
     }
 
     // ==================================================
-    // DASHBOARD
+    // MAIN DASHBOARD
     // ==================================================
 
     private void createDashboard() {
@@ -122,15 +265,54 @@ public class DashboardFrame extends JFrame {
                 );
 
         mainPanel.setBackground(
-                BACKGROUND
+                LIGHT_BACKGROUND
         );
 
         mainPanel.setBorder(
                 new EmptyBorder(
+                        25,
                         30,
-                        40,
-                        30,
-                        40
+                        25,
+                        30
+                )
+        );
+
+        // ==================================================
+        // WELCOME CARD
+        // ==================================================
+
+        JPanel welcomeCard =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        welcomeCard.setBackground(
+                Color.WHITE
+        );
+
+        welcomeCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                18,
+                                22,
+                                18,
+                                22
+                        )
+                )
+        );
+
+        JPanel welcomeTextPanel =
+                new JPanel();
+
+        welcomeTextPanel.setOpaque(false);
+
+        welcomeTextPanel.setLayout(
+                new BoxLayout(
+                        welcomeTextPanel,
+                        BoxLayout.Y_AXIS
                 )
         );
 
@@ -144,7 +326,7 @@ public class DashboardFrame extends JFrame {
                 new Font(
                         "Arial",
                         Font.BOLD,
-                        22
+                        21
                 )
         );
 
@@ -152,10 +334,50 @@ public class DashboardFrame extends JFrame {
                 DARK_BLUE
         );
 
+        JLabel descriptionLabel =
+                new JLabel(
+                        "Select a module below to continue."
+                );
+
+        descriptionLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        13
+                )
+        );
+
+        descriptionLabel.setForeground(
+                TEXT_DARK
+        );
+
+        welcomeTextPanel.add(
+                welcomeLabel
+        );
+
+        welcomeTextPanel.add(
+                Box.createVerticalStrut(
+                        5
+                )
+        );
+
+        welcomeTextPanel.add(
+                descriptionLabel
+        );
+
+        welcomeCard.add(
+                welcomeTextPanel,
+                BorderLayout.WEST
+        );
+
         mainPanel.add(
-                welcomeLabel,
+                welcomeCard,
                 BorderLayout.NORTH
         );
+
+        // ==================================================
+        // MODULE CARDS
+        // ==================================================
 
         JPanel modulePanel =
                 new JPanel(
@@ -170,109 +392,246 @@ public class DashboardFrame extends JFrame {
         modulePanel.setOpaque(false);
 
         JButton userButton =
-                createButton(
-                        "User Management"
+                createModuleButton(
+                        "User Management",
+                        "Manage system users and accounts",
+                        new Color(
+                                219,
+                                234,
+                                254
+                        ),
+                        new Color(
+                                30,
+                                64,
+                                175
+                        )
                 );
 
         JButton attendanceButton =
-                createButton(
-                        "My Attendance"
+                createModuleButton(
+                        "Attendance",
+                        "View and manage attendance",
+                        new Color(
+                                237,
+                                233,
+                                254
+                        ),
+                        new Color(
+                                91,
+                                33,
+                                182
+                        )
                 );
 
         JButton productButton =
-                createButton(
-                        "Product & Inventory"
+                createModuleButton(
+                        "Product & Inventory",
+                        "Products, categories and stock",
+                        new Color(
+                                204,
+                                251,
+                                241
+                        ),
+                        new Color(
+                                17,
+                                94,
+                                89
+                        )
                 );
 
         JButton salesButton =
-                createButton(
-                        "Sales & Billing"
+                createModuleButton(
+                        "Sales & Billing",
+                        "Create sales and customer bills",
+                        new Color(
+                                220,
+                                245,
+                                228
+                        ),
+                        new Color(
+                                34,
+                                100,
+                                58
+                        )
                 );
 
         JButton salesHistoryButton =
-                createButton(
-                        "Sales History"
+                createModuleButton(
+                        "Sales History",
+                        "Search previous sales records",
+                        new Color(
+                                254,
+                                243,
+                                199
+                        ),
+                        new Color(
+                                146,
+                                64,
+                                14
+                        )
                 );
 
         JButton salesReportButton =
-                createButton(
-                        "Sales Reports"
+                createModuleButton(
+                        "Sales Reports",
+                        "View sales summaries and reports",
+                        new Color(
+                                255,
+                                237,
+                                213
+                        ),
+                        new Color(
+                                154,
+                                52,
+                                18
+                        )
                 );
 
         JButton customerButton =
-                createButton(
-                        "Customer Management"
+                createModuleButton(
+                        "Customer Management",
+                        "Manage customer information",
+                        new Color(
+                                224,
+                                242,
+                                254
+                        ),
+                        new Color(
+                                3,
+                                105,
+                                161
+                        )
                 );
 
         JButton financeButton =
-                createButton(
-                        "Finance / Expenses"
+                createModuleButton(
+                        "Finance / Expenses",
+                        "Manage expenses and categories",
+                        new Color(
+                                243,
+                                232,
+                                255
+                        ),
+                        new Color(
+                                107,
+                                33,
+                                168
+                        )
                 );
 
         JButton supplierButton =
-                createButton(
-                        "Supplier & Purchase"
+                createModuleButton(
+                        "Supplier & Purchase",
+                        "Suppliers, purchases and stock-in",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                153,
+                                27,
+                                27
+                        )
                 );
 
-        modulePanel.add(userButton);
-        modulePanel.add(attendanceButton);
-        modulePanel.add(productButton);
+        modulePanel.add(
+                userButton
+        );
 
-        modulePanel.add(salesButton);
-        modulePanel.add(salesHistoryButton);
-        modulePanel.add(salesReportButton);
+        modulePanel.add(
+                attendanceButton
+        );
 
-        modulePanel.add(customerButton);
-        modulePanel.add(financeButton);
-        modulePanel.add(supplierButton);
+        modulePanel.add(
+                productButton
+        );
+
+        modulePanel.add(
+                salesButton
+        );
+
+        modulePanel.add(
+                salesHistoryButton
+        );
+
+        modulePanel.add(
+                salesReportButton
+        );
+
+        modulePanel.add(
+                customerButton
+        );
+
+        modulePanel.add(
+                financeButton
+        );
+
+        modulePanel.add(
+                supplierButton
+        );
 
         mainPanel.add(
                 modulePanel,
                 BorderLayout.CENTER
         );
 
-        JButton logoutButton =
-                new JButton(
-                        "Logout"
-                );
-
-        logoutButton.setFont(
-                new Font(
-                        "Arial",
-                        Font.BOLD,
-                        13
-                )
-        );
-
-        logoutButton.setBackground(
-                new Color(
-                        254,
-                        226,
-                        226
-                )
-        );
-
-        logoutButton.setForeground(
-                new Color(
-                        127,
-                        29,
-                        29
-                )
-        );
-
-        logoutButton.setFocusPainted(false);
+        // ==================================================
+        // BOTTOM BAR
+        // ==================================================
 
         JPanel bottomPanel =
                 new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
+                        new BorderLayout()
                 );
 
         bottomPanel.setOpaque(false);
 
+        JLabel statusLabel =
+                new JLabel(
+                        "Logged in as "
+                                + loggedInUser.getUsername()
+                );
+
+        statusLabel.setForeground(
+                new Color(
+                        107,
+                        114,
+                        128
+                )
+        );
+
+        statusLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        12
+                )
+        );
+
+        JButton logoutButton =
+                createSmallButton(
+                        "Logout",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                127,
+                                29,
+                                29
+                        )
+                );
+
         bottomPanel.add(
-                logoutButton
+                statusLabel,
+                BorderLayout.WEST
+        );
+
+        bottomPanel.add(
+                logoutButton,
+                BorderLayout.EAST
         );
 
         mainPanel.add(
@@ -286,187 +645,186 @@ public class DashboardFrame extends JFrame {
         );
 
         // ==================================================
-        // USER MANAGEMENT
+        // ACTIONS
         // ==================================================
 
         userButton.addActionListener(
-                e -> {
-
-                    UserManagementFrame frame =
-                            new UserManagementFrame(
-                                    loggedInUser
-                            );
-
-                    frame.setVisible(true);
-                }
+                e -> openUserManagement()
         );
-
-        // ==================================================
-        // ATTENDANCE
-        // ==================================================
 
         attendanceButton.addActionListener(
-                e -> {
-
-                    boolean canManage =
-                            "OWNER".equalsIgnoreCase(
-                                    loggedInUser.getRole()
-                            )
-                                    ||
-                                    "MANAGER".equalsIgnoreCase(
-                                            loggedInUser.getRole()
-                                    );
-
-                    AttendanceManagementFrame frame =
-                            new AttendanceManagementFrame(
-                                    loggedInUser.getUserId(),
-                                    canManage
-                            );
-
-                    frame.setVisible(true);
-                }
+                e -> openAttendance()
         );
-
-        // ==================================================
-        // PRODUCT / INVENTORY
-        // ==================================================
 
         productButton.addActionListener(
-                e -> {
-
-                    ProductInventoryFrame frame =
-                            new ProductInventoryFrame();
-
-                    frame.setVisible(true);
-                }
+                e -> openProductInventory()
         );
-
-        // ==================================================
-        // SALES
-        // ==================================================
 
         salesButton.addActionListener(
-                e -> {
-
-                    SalesPanel panel =
-                            new SalesPanel();
-
-                    openPanel(
-                            panel,
-                            "TextFlow - Sales & Billing"
-                    );
-                }
+                e -> openSales()
         );
-
-        // ==================================================
-        // SALES HISTORY
-        // ==================================================
 
         salesHistoryButton.addActionListener(
-                e -> {
-
-                    SalesHistoryPanel panel =
-                            new SalesHistoryPanel();
-
-                    openPanel(
-                            panel,
-                            "TextFlow - Sales History"
-                    );
-                }
+                e -> openSalesHistory()
         );
-
-        // ==================================================
-        // SALES REPORT
-        // ==================================================
 
         salesReportButton.addActionListener(
-                e -> {
-
-                    SalesReportPanel panel =
-                            new SalesReportPanel();
-
-                    openPanel(
-                            panel,
-                            "TextFlow - Sales Reports"
-                    );
-                }
+                e -> openSalesReport()
         );
-
-        // ==================================================
-        // CUSTOMER MANAGEMENT
-        // ==================================================
 
         customerButton.addActionListener(
-                e -> {
-
-                    CustomerPanel panel =
-                            new CustomerPanel();
-
-                    openPanel(
-                            panel,
-                            "TextFlow - Customer Management"
-                    );
-                }
+                e -> openCustomerManagement()
         );
-
-        // ==================================================
-        // FINANCE
-        // ==================================================
 
         financeButton.addActionListener(
-                e -> {
-
-                    ExpenseUI frame =
-                            new ExpenseUI(
-                                    loggedInUser.getUserId()
-                            );
-
-                    frame.setVisible(true);
-                }
+                e -> openFinance()
         );
-
-        // ==================================================
-        // SUPPLIER & PURCHASE
-        // ==================================================
 
         supplierButton.addActionListener(
-                e -> {
-
-                    openSupplierMenu();
-                }
+                e -> openSupplierMenu()
         );
 
-        // ==================================================
-        // LOGOUT
-        // ==================================================
-
         logoutButton.addActionListener(
-                e -> {
-
-                    int confirm =
-                            JOptionPane.showConfirmDialog(
-                                    this,
-                                    "Logout from TextFlow?",
-                                    "Logout",
-                                    JOptionPane.YES_NO_OPTION
-                            );
-
-                    if (
-                            confirm
-                                    == JOptionPane.YES_OPTION
-                    ) {
-
-                        new LoginFrame()
-                                .setVisible(true);
-
-                        dispose();
-                    }
-                }
+                e -> logout()
         );
     }
 
     // ==================================================
-    // SUPPLIER MENU
+    // USER MANAGEMENT
+    // ==================================================
+
+    private void openUserManagement() {
+
+        UserManagementFrame frame =
+                new UserManagementFrame(
+                        loggedInUser
+                );
+
+        frame.setVisible(
+                true
+        );
+    }
+
+    // ==================================================
+    // ATTENDANCE
+    // ==================================================
+
+    private void openAttendance() {
+
+        boolean canManage =
+                "OWNER".equalsIgnoreCase(
+                        loggedInUser.getRole()
+                )
+                        ||
+                        "MANAGER".equalsIgnoreCase(
+                                loggedInUser.getRole()
+                        );
+
+        AttendanceManagementFrame frame =
+                new AttendanceManagementFrame(
+                        loggedInUser.getUserId(),
+                        canManage
+                );
+
+        frame.setVisible(
+                true
+        );
+    }
+
+    // ==================================================
+    // PRODUCT / INVENTORY
+    // ==================================================
+
+    private void openProductInventory() {
+
+        ProductInventoryFrame frame =
+                new ProductInventoryFrame();
+
+        frame.setVisible(
+                true
+        );
+    }
+
+    // ==================================================
+    // SALES
+    // ==================================================
+
+    private void openSales() {
+
+        SalesPanel panel =
+                new SalesPanel(
+                        loggedInUser.getUserId()
+                );
+
+        openPanel(
+                panel,
+                "TextFlow - Sales & Billing"
+        );
+    }
+
+    // ==================================================
+    // SALES HISTORY
+    // ==================================================
+
+    private void openSalesHistory() {
+
+        SalesHistoryPanel panel =
+                new SalesHistoryPanel();
+
+        openPanel(
+                panel,
+                "TextFlow - Sales History"
+        );
+    }
+
+    // ==================================================
+    // SALES REPORT
+    // ==================================================
+
+    private void openSalesReport() {
+
+        SalesReportPanel panel =
+                new SalesReportPanel();
+
+        openPanel(
+                panel,
+                "TextFlow - Sales Reports"
+        );
+    }
+
+    // ==================================================
+    // CUSTOMER
+    // ==================================================
+
+    private void openCustomerManagement() {
+
+        CustomerPanel panel =
+                new CustomerPanel();
+
+        openPanel(
+                panel,
+                "TextFlow - Customer Management"
+        );
+    }
+
+    // ==================================================
+    // FINANCE
+    // ==================================================
+
+    private void openFinance() {
+
+        ExpenseUI frame =
+                new ExpenseUI(
+                        loggedInUser.getUserId()
+                );
+
+        frame.setVisible(
+                true
+        );
+    }
+
+    // ==================================================
+    // SUPPLIER & PURCHASE
     // ==================================================
 
     private void openSupplierMenu() {
@@ -480,7 +838,7 @@ public class DashboardFrame extends JFrame {
         int choice =
                 JOptionPane.showOptionDialog(
                         this,
-                        "Select an option:",
+                        "Select Supplier & Purchase option:",
                         "Supplier & Purchase",
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.PLAIN_MESSAGE,
@@ -489,12 +847,17 @@ public class DashboardFrame extends JFrame {
                         options[0]
                 );
 
-        if (choice == 0) {
+        if (
+                choice == 0
+        ) {
 
-            new SupplierManagementFrame()
-                    .setVisible(true);
+            new SupplierManagementFrame(
+                    loggedInUser.getUserId()
+            ).setVisible(true);
 
-        } else if (choice == 1) {
+        } else if (
+                choice == 1
+        ) {
 
             new PurchaseManagementFrame(
                     loggedInUser.getUserId()
@@ -503,7 +866,33 @@ public class DashboardFrame extends JFrame {
     }
 
     // ==================================================
-    // OPEN JPANEL IN FRAME
+    // LOGOUT
+    // ==================================================
+
+    private void logout() {
+
+        int confirm =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Logout from TextFlow?",
+                        "Logout",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+        if (
+                confirm
+                        == JOptionPane.YES_OPTION
+        ) {
+
+            new LoginFrame()
+                    .setVisible(true);
+
+            dispose();
+        }
+    }
+
+    // ==================================================
+    // OPEN JPANEL
     // ==================================================
 
     private void openPanel(
@@ -512,15 +901,24 @@ public class DashboardFrame extends JFrame {
     ) {
 
         JFrame frame =
-                new JFrame(title);
+                new JFrame(
+                        title
+                );
 
         frame.setDefaultCloseOperation(
                 JFrame.DISPOSE_ON_CLOSE
         );
 
         frame.setSize(
-                1050,
-                700
+                1100,
+                720
+        );
+
+        frame.setMinimumSize(
+                new Dimension(
+                        900,
+                        600
+                )
         );
 
         frame.setLocationRelativeTo(
@@ -531,37 +929,63 @@ public class DashboardFrame extends JFrame {
                 panel
         );
 
-        frame.setVisible(true);
+        frame.setVisible(
+                true
+        );
     }
 
     // ==================================================
-    // BUTTON STYLE
+    // MODULE BUTTON
     // ==================================================
 
-    private JButton createButton(
-            String text
+    private JButton createModuleButton(
+            String title,
+            String description,
+            Color backgroundColor,
+            Color textColor
     ) {
 
+        String text =
+                "<html>"
+                        + "<div style='text-align:center;'>"
+                        + "<b style='font-size:14px;'>"
+                        + title
+                        + "</b>"
+                        + "<br><br>"
+                        + "<span style='font-size:10px;'>"
+                        + description
+                        + "</span>"
+                        + "</div>"
+                        + "</html>";
+
         JButton button =
-                new JButton(text);
+                new JButton(
+                        text
+                );
+
+        button.setBackground(
+                backgroundColor
+        );
+
+        button.setForeground(
+                textColor
+        );
 
         button.setFont(
                 new Font(
                         "Arial",
-                        Font.BOLD,
-                        15
+                        Font.PLAIN,
+                        13
                 )
         );
 
-        button.setBackground(
-                Color.WHITE
+        button.setFocusPainted(
+                false
         );
 
-        button.setForeground(
-                DARK_BLUE
+        button.setOpaque(
+                true
         );
-
-        button.setFocusPainted(false);
 
         button.setCursor(
                 new Cursor(
@@ -572,17 +996,71 @@ public class DashboardFrame extends JFrame {
         button.setBorder(
                 BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(
-                                new Color(
-                                        215,
-                                        220,
-                                        230
-                                )
+                                backgroundColor.darker()
                         ),
                         BorderFactory.createEmptyBorder(
-                                20,
+                                18,
                                 15,
-                                20,
+                                18,
                                 15
+                        )
+                )
+        );
+
+        return button;
+    }
+
+    // ==================================================
+    // SMALL BUTTON
+    // ==================================================
+
+    private JButton createSmallButton(
+            String text,
+            Color backgroundColor,
+            Color textColor
+    ) {
+
+        JButton button =
+                new JButton(
+                        text
+                );
+
+        button.setBackground(
+                backgroundColor
+        );
+
+        button.setForeground(
+                textColor
+        );
+
+        button.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        button.setFocusPainted(
+                false
+        );
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        button.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                backgroundColor.darker()
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                8,
+                                18,
+                                8,
+                                18
                         )
                 )
         );

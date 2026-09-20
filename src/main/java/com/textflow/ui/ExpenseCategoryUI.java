@@ -3,6 +3,7 @@ package com.textflow.ui;
 import com.textflow.dao.ExpenseCategoryDAO;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -17,115 +18,419 @@ public class ExpenseCategoryUI extends JFrame {
 
     private final ExpenseCategoryDAO categoryDAO;
 
+    // ==================================================
+    // COLORS
+    // ==================================================
+
+    private final Color DARK_BLUE =
+            new Color(31, 60, 136);
+
+    private final Color LIGHT_BACKGROUND =
+            new Color(245, 247, 250);
+
+    private final Color CARD_BORDER =
+            new Color(220, 225, 230);
+
+    // ==================================================
+    // CONSTRUCTOR
+    // ==================================================
+
     public ExpenseCategoryUI() {
 
-        categoryDAO = new ExpenseCategoryDAO();
+        categoryDAO =
+                new ExpenseCategoryDAO();
 
-        setTitle("TextFlow - Expense Category Management");
-        setSize(750, 550);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setTitle(
+                "TextFlow - Expense Category Management"
+        );
+
+        setSize(
+                850,
+                600
+        );
+
+        setMinimumSize(
+                new Dimension(
+                        750,
+                        520
+                )
+        );
+
+        setDefaultCloseOperation(
+                JFrame.DISPOSE_ON_CLOSE
+        );
+
         setLocationRelativeTo(null);
 
         createUI();
 
-        // Load existing categories from database
         loadCategories();
     }
 
+    // ==================================================
+    // CREATE UI
+    // ==================================================
+
     private void createUI() {
 
-        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        JPanel rootPanel =
+                new JPanel(
+                        new BorderLayout()
+                );
 
-        mainPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        20, 20, 20, 20
+        rootPanel.setBackground(
+                LIGHT_BACKGROUND
+        );
+
+        // ==================================================
+        // HEADER
+        // ==================================================
+
+        JPanel headerPanel =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        headerPanel.setBackground(
+                DARK_BLUE
+        );
+
+        headerPanel.setBorder(
+                new EmptyBorder(
+                        17,
+                        25,
+                        17,
+                        25
                 )
         );
 
-        // =========================
-        // TITLE
-        // =========================
-
         JLabel titleLabel =
-                new JLabel("Expense Category Management");
+                new JLabel(
+                        "TEXTFLOW  |  Expense Categories"
+                );
 
-        titleLabel.setFont(
-                new Font("Arial", Font.BOLD, 24)
+        titleLabel.setForeground(
+                Color.WHITE
         );
 
-        mainPanel.add(
+        titleLabel.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        22
+                )
+        );
+
+        headerPanel.add(
                 titleLabel,
+                BorderLayout.WEST
+        );
+
+        rootPanel.add(
+                headerPanel,
                 BorderLayout.NORTH
         );
 
-        // =========================
-        // INPUT AREA
-        // =========================
+        // ==================================================
+        // CONTENT
+        // ==================================================
 
-        JPanel inputPanel =
-                new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel contentPanel =
+                new JPanel(
+                        new BorderLayout(
+                                15,
+                                15
+                        )
+                );
 
-        inputPanel.add(
-                new JLabel("Category Name:")
+        contentPanel.setBackground(
+                LIGHT_BACKGROUND
         );
 
-        categoryNameField = new JTextField();
+        contentPanel.setBorder(
+                new EmptyBorder(
+                        20,
+                        20,
+                        20,
+                        20
+                )
+        );
 
-        inputPanel.add(
+        // ==================================================
+        // FORM CARD
+        // ==================================================
+
+        JPanel formCard =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                12
+                        )
+                );
+
+        formCard.setBackground(
+                Color.WHITE
+        );
+
+        formCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                18,
+                                20,
+                                18,
+                                20
+                        )
+                )
+        );
+
+        JLabel formTitle =
+                new JLabel(
+                        "Category Details"
+                );
+
+        formTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        17
+                )
+        );
+
+        formTitle.setForeground(
+                DARK_BLUE
+        );
+
+        formCard.add(
+                formTitle,
+                BorderLayout.NORTH
+        );
+
+        JPanel fieldsPanel =
+                new JPanel(
+                        new GridBagLayout()
+                );
+
+        fieldsPanel.setOpaque(
+                false
+        );
+
+        GridBagConstraints gbc =
+                new GridBagConstraints();
+
+        gbc.insets =
+                new Insets(
+                        8,
+                        8,
+                        8,
+                        8
+                );
+
+        gbc.anchor =
+                GridBagConstraints.WEST;
+
+        categoryNameField =
+                new JTextField();
+
+        descriptionField =
+                new JTextField();
+
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                0,
+                "Category Name:",
                 categoryNameField
         );
 
-        inputPanel.add(
-                new JLabel("Description:")
-        );
-
-        descriptionField = new JTextField();
-
-        inputPanel.add(
+        addFormRow(
+                fieldsPanel,
+                gbc,
+                1,
+                "Description:",
                 descriptionField
         );
 
-        // =========================
-        // BUTTONS
-        // =========================
-
-        JButton addButton =
-                new JButton("Add Category");
-
-        JButton deleteButton =
-                new JButton("Delete Selected");
-
-        JButton refreshButton =
-                new JButton("Refresh");
-
-        JPanel buttonPanel =
-                new JPanel();
-
-        buttonPanel.add(addButton);
-        buttonPanel.add(deleteButton);
-        buttonPanel.add(refreshButton);
-
-        JPanel topPanel =
-                new JPanel(new BorderLayout(10, 10));
-
-        topPanel.add(
-                inputPanel,
+        formCard.add(
+                fieldsPanel,
                 BorderLayout.CENTER
         );
 
-        topPanel.add(
+        // ==================================================
+        // BUTTONS
+        // ==================================================
+
+        JButton addButton =
+                createButton(
+                        "Add Category",
+                        new Color(
+                                220,
+                                245,
+                                228
+                        ),
+                        new Color(
+                                34,
+                                100,
+                                58
+                        )
+                );
+
+        JButton deleteButton =
+                createButton(
+                        "Deactivate Selected",
+                        new Color(
+                                254,
+                                226,
+                                226
+                        ),
+                        new Color(
+                                153,
+                                27,
+                                27
+                        )
+                );
+
+        JButton refreshButton =
+                createButton(
+                        "Refresh",
+                        new Color(
+                                204,
+                                251,
+                                241
+                        ),
+                        new Color(
+                                17,
+                                94,
+                                89
+                        )
+                );
+
+        JButton clearButton =
+                createButton(
+                        "Clear",
+                        new Color(
+                                243,
+                                244,
+                                246
+                        ),
+                        new Color(
+                                55,
+                                65,
+                                81
+                        )
+                );
+
+        JButton closeButton =
+                createButton(
+                        "Close",
+                        new Color(
+                                219,
+                                234,
+                                254
+                        ),
+                        new Color(
+                                30,
+                                64,
+                                175
+                        )
+                );
+
+        JPanel buttonPanel =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                10,
+                                3
+                        )
+                );
+
+        buttonPanel.setOpaque(
+                false
+        );
+
+        buttonPanel.add(
+                addButton
+        );
+
+        buttonPanel.add(
+                deleteButton
+        );
+
+        buttonPanel.add(
+                refreshButton
+        );
+
+        buttonPanel.add(
+                clearButton
+        );
+
+        buttonPanel.add(
+                closeButton
+        );
+
+        formCard.add(
                 buttonPanel,
                 BorderLayout.SOUTH
         );
 
-        mainPanel.add(
-                topPanel,
-                BorderLayout.CENTER
+        contentPanel.add(
+                formCard,
+                BorderLayout.NORTH
         );
 
-        // =========================
-        // TABLE
-        // =========================
+        // ==================================================
+        // TABLE CARD
+        // ==================================================
+
+        JPanel tableCard =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        tableCard.setBackground(
+                Color.WHITE
+        );
+
+        tableCard.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                CARD_BORDER
+                        ),
+                        new EmptyBorder(
+                                15,
+                                15,
+                                15,
+                                15
+                        )
+                )
+        );
+
+        JLabel tableTitle =
+                new JLabel(
+                        "Expense Categories"
+                );
+
+        tableTitle.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        17
+                )
+        );
+
+        tableTitle.setForeground(
+                DARK_BLUE
+        );
+
+        tableCard.add(
+                tableTitle,
+                BorderLayout.NORTH
+        );
 
         tableModel =
                 new DefaultTableModel(
@@ -149,25 +454,91 @@ public class ExpenseCategoryUI extends JFrame {
                 };
 
         categoryTable =
-                new JTable(tableModel);
+                new JTable(
+                        tableModel
+                );
 
-        categoryTable.setRowHeight(25);
+        categoryTable.setRowHeight(
+                28
+        );
 
         categoryTable.setSelectionMode(
-                ListSelectionModel.SINGLE_SELECTION
+                ListSelectionModel
+                        .SINGLE_SELECTION
         );
+
+        categoryTable.setGridColor(
+                new Color(
+                        230,
+                        233,
+                        238
+                )
+        );
+
+        categoryTable
+                .getTableHeader()
+                .setBackground(
+                        DARK_BLUE
+                );
+
+        categoryTable
+                .getTableHeader()
+                .setForeground(
+                        Color.WHITE
+                );
+
+        categoryTable
+                .getTableHeader()
+                .setFont(
+                        new Font(
+                                "Arial",
+                                Font.BOLD,
+                                12
+                        )
+                );
+
+        categoryTable
+                .getTableHeader()
+                .setPreferredSize(
+                        new Dimension(
+                                0,
+                                32
+                        )
+                );
 
         JScrollPane scrollPane =
-                new JScrollPane(categoryTable);
+                new JScrollPane(
+                        categoryTable
+                );
 
-        mainPanel.add(
-                scrollPane,
-                BorderLayout.SOUTH
+        scrollPane.setBorder(
+                BorderFactory.createLineBorder(
+                        CARD_BORDER
+                )
         );
 
-        // =========================
-        // BUTTON ACTIONS
-        // =========================
+        tableCard.add(
+                scrollPane,
+                BorderLayout.CENTER
+        );
+
+        contentPanel.add(
+                tableCard,
+                BorderLayout.CENTER
+        );
+
+        rootPanel.add(
+                contentPanel,
+                BorderLayout.CENTER
+        );
+
+        add(
+                rootPanel
+        );
+
+        // ==================================================
+        // ACTIONS
+        // ==================================================
 
         addButton.addActionListener(
                 e -> addCategory()
@@ -181,22 +552,111 @@ public class ExpenseCategoryUI extends JFrame {
                 e -> loadCategories()
         );
 
-        add(mainPanel);
+        clearButton.addActionListener(
+                e -> clearFields()
+        );
+
+        closeButton.addActionListener(
+                e -> dispose()
+        );
     }
 
-    // =========================
+    // ==================================================
+    // FORM ROW
+    // ==================================================
+
+    private void addFormRow(
+            JPanel panel,
+            GridBagConstraints gbc,
+            int row,
+            String labelText,
+            Component component
+    ) {
+
+        gbc.gridx =
+                0;
+
+        gbc.gridy =
+                row;
+
+        gbc.weightx =
+                0;
+
+        gbc.fill =
+                GridBagConstraints.NONE;
+
+        JLabel label =
+                new JLabel(
+                        labelText
+                );
+
+        label.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        label.setPreferredSize(
+                new Dimension(
+                        130,
+                        30
+                )
+        );
+
+        panel.add(
+                label,
+                gbc
+        );
+
+        gbc.gridx =
+                1;
+
+        gbc.weightx =
+                1;
+
+        gbc.fill =
+                GridBagConstraints.HORIZONTAL;
+
+        if (
+                component instanceof JComponent
+        ) {
+
+            ((JComponent) component)
+                    .setPreferredSize(
+                            new Dimension(
+                                    450,
+                                    34
+                            )
+                    );
+        }
+
+        panel.add(
+                component,
+                gbc
+        );
+    }
+
+    // ==================================================
     // ADD CATEGORY
-    // =========================
+    // ==================================================
 
     private void addCategory() {
 
         String categoryName =
-                categoryNameField.getText().trim();
+                categoryNameField
+                        .getText()
+                        .trim();
 
         String description =
-                descriptionField.getText().trim();
+                descriptionField
+                        .getText()
+                        .trim();
 
-        if (categoryName.isEmpty()) {
+        if (
+                categoryName.isEmpty()
+        ) {
 
             JOptionPane.showMessageDialog(
                     this,
@@ -214,7 +674,9 @@ public class ExpenseCategoryUI extends JFrame {
                         description
                 );
 
-        if (success) {
+        if (
+                success
+        ) {
 
             JOptionPane.showMessageDialog(
                     this,
@@ -223,8 +685,7 @@ public class ExpenseCategoryUI extends JFrame {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-            categoryNameField.setText("");
-            descriptionField.setText("");
+            clearFields();
 
             loadCategories();
 
@@ -239,16 +700,19 @@ public class ExpenseCategoryUI extends JFrame {
         }
     }
 
-    // =========================
-    // DELETE CATEGORY
-    // =========================
+    // ==================================================
+    // DEACTIVATE CATEGORY
+    // ==================================================
 
     private void deleteCategory() {
 
         int selectedRow =
-                categoryTable.getSelectedRow();
+                categoryTable
+                        .getSelectedRow();
 
-        if (selectedRow == -1) {
+        if (
+                selectedRow == -1
+        ) {
 
             JOptionPane.showMessageDialog(
                     this,
@@ -260,8 +724,6 @@ public class ExpenseCategoryUI extends JFrame {
             return;
         }
 
-        // ID is now column 1 because
-        // column 0 is the display number
         int categoryId =
                 Integer.parseInt(
                         tableModel
@@ -280,61 +742,101 @@ public class ExpenseCategoryUI extends JFrame {
                         )
                         .toString();
 
+        String status =
+                tableModel
+                        .getValueAt(
+                                selectedRow,
+                                4
+                        )
+                        .toString();
+
+        if (
+                "INACTIVE"
+                        .equalsIgnoreCase(
+                                status
+                        )
+        ) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "This category is already inactive.",
+                    "Category",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            return;
+        }
+
         int confirmation =
                 JOptionPane.showConfirmDialog(
                         this,
                         "Deactivate category: "
                                 + categoryName
                                 + "?",
-                        "Confirm Delete",
+                        "Confirm Deactivation",
                         JOptionPane.YES_NO_OPTION
                 );
 
-        if (confirmation ==
-                JOptionPane.YES_OPTION) {
+        if (
+                confirmation
+                        != JOptionPane.YES_OPTION
+        ) {
 
-            boolean success =
-                    categoryDAO.deleteCategory(
-                            categoryId
-                    );
+            return;
+        }
 
-            if (success) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Category deleted successfully!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE
+        boolean success =
+                categoryDAO.deleteCategory(
+                        categoryId
                 );
 
-                loadCategories();
+        if (
+                success
+        ) {
 
-            } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Category deactivated successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
 
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Failed to delete category.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
+            clearFields();
+
+            loadCategories();
+
+        } else {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to deactivate category.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
-    // =========================
+    // ==================================================
     // LOAD CATEGORIES
-    // =========================
+    // ==================================================
 
     private void loadCategories() {
 
-        tableModel.setRowCount(0);
+        tableModel.setRowCount(
+                0
+        );
 
         List<String[]> categories =
-                categoryDAO.getCategories();
+                categoryDAO
+                        .getCategories();
 
-        int displayNumber = 1;
+        int displayNumber =
+                1;
 
-        for (String[] category : categories) {
+        for (
+                String[] category
+                : categories
+        ) {
 
             tableModel.addRow(
                     new Object[]{
@@ -348,18 +850,80 @@ public class ExpenseCategoryUI extends JFrame {
         }
     }
 
-    // =========================
-    // MAIN
-    // =========================
+    // ==================================================
+    // CLEAR
+    // ==================================================
 
-    public static void main(String[] args) {
+    private void clearFields() {
 
-        SwingUtilities.invokeLater(() -> {
+        categoryNameField
+                .setText("");
 
-            ExpenseCategoryUI ui =
-                    new ExpenseCategoryUI();
+        descriptionField
+                .setText("");
 
-            ui.setVisible(true);
-        });
+        categoryTable
+                .clearSelection();
+
+        categoryNameField
+                .requestFocus();
+    }
+
+    // ==================================================
+    // BUTTON
+    // ==================================================
+
+    private JButton createButton(
+            String text,
+            Color background,
+            Color foreground
+    ) {
+
+        JButton button =
+                new JButton(
+                        text
+                );
+
+        button.setBackground(
+                background
+        );
+
+        button.setForeground(
+                foreground
+        );
+
+        button.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        button.setFocusPainted(
+                false
+        );
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        button.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                background.darker()
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                8,
+                                14,
+                                8,
+                                14
+                        )
+                )
+        );
+
+        return button;
     }
 }
