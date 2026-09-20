@@ -23,7 +23,7 @@ public class ExpenseCategoryUI extends JFrame {
 
         setTitle("TextFlow - Expense Category Management");
         setSize(750, 550);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         createUI();
