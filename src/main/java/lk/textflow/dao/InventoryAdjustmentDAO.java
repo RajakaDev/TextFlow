@@ -180,4 +180,48 @@ public class InventoryAdjustmentDAO {
             }
         }
     }
+    public boolean adjustStock(
+            InventoryAdjustment adjustment,
+            Connection connection) throws SQLException {
+
+        String stockSql = """
+            UPDATE products
+            SET stock_quantity = stock_quantity + ?
+            WHERE product_id = ?
+            AND stock_quantity + ? >= 0
+            """;
+
+        try (PreparedStatement stockStatement =
+                     connection.prepareStatement(stockSql)) {
+
+            stockStatement.setInt(1, adjustment.getQuantityChange());
+            stockStatement.setInt(2, adjustment.getProductId());
+            stockStatement.setInt(3, adjustment.getQuantityChange());
+
+            int updated = stockStatement.executeUpdate();
+
+            if (updated == 0) {
+                return false;
+            }
+        }
+
+        String adjustmentSql = """
+            INSERT INTO inventory_adjustments
+            (product_id, user_id, quantity_change, reason)
+            VALUES (?, ?, ?, ?)
+            """;
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(adjustmentSql)) {
+
+            statement.setInt(1, adjustment.getProductId());
+            statement.setInt(2, adjustment.getUserId());
+            statement.setInt(3, adjustment.getQuantityChange());
+            statement.setString(4, adjustment.getReason());
+
+            statement.executeUpdate();
+        }
+
+        return true;
+    }
 }
